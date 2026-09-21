@@ -179,15 +179,23 @@ public final class ShopService {
     }
 
     boolean canSellHand(Player player, Category category, Material material) {
-        return (player.hasPermission("imperialshop.sellallhand.all")
-                || player.hasPermission("imperialshop.sellallhand." + category.id()))
-                && canTrade(player, category, material);
+        if (!(player.hasPermission("imperialshop.sellallhand.all")
+                || player.hasPermission("imperialshop.sellallhand." + category.id()))) {
+            return false;
+        }
+        String permission = plugin.getConfig().getString(
+                "item-permissions." + category.id() + "." + material.name(), "");
+        return permission.isBlank() || player.hasPermission(permission);
     }
 
     boolean canSellGuiItem(Player player, Category category, Material material) {
         boolean sectionPermission = player.hasPermission("imperialshop.sellgui.all")
                 || player.hasPermission("imperialshop.sellgui." + category.id());
-        return sectionPermission && canTrade(player, category, material);
+        if (!sectionPermission) return false;
+
+        String permission = plugin.getConfig().getString(
+                "item-permissions." + category.id() + "." + material.name(), "");
+        return permission.isBlank() || player.hasPermission(permission);
     }
 
     Category categoryFor(Material material) {
@@ -408,7 +416,7 @@ public final class ShopService {
             if (stack == null || stack.getType().isAir() || !materials.contains(stack.getType())) {
                 if (stack != null && !stack.getType().isAir() && prices.containsKey(stack.getType())) {
                     Category category = categoryFor(stack.getType());
-                    if (category != null && canTrade(player, category, stack.getType())) {
+                    if (category != null && canSellGuiItem(player, category, stack.getType())) {
                         materials.add(stack.getType());
                     }
                 }
@@ -574,15 +582,22 @@ public final class ShopService {
         return true;
     }
 
-    double sellMaterial(Player player, Material material, int requested) {
+    private double sellValidated(Player player, Material material, int requested,
+                                  boolean guiPermission, boolean ignoreMaxSell) {
         Category category = categoryFor(material);
         Price price = prices.get(material);
-        if (category == null || price == null || price.sell() < 0 || requested < 1
-                || !canTrade(player, category, material)) return 0;
 
-        int amount = Math.min(requested, price.maxSell());
-        int available = count(player, material);
-        amount = Math.min(amount, available);
+        if (category == null || price == null || price.sell() < 0 || requested < 1) return 0;
+        boolean allowed = guiPermission
+                ? canSellGuiItem(player, category, material)
+                : canTrade(player, category, material);
+        if (!allowed) return 0;
+
+        int amount = requested;
+        if (!ignoreMaxSell) {
+            amount = Math.min(amount, price.maxSell());
+        }
+        amount = Math.min(amount, count(player, material));
         if (amount < 1) return 0;
 
         double total = sellPrice(player, material) * amount;
@@ -601,6 +616,18 @@ public final class ShopService {
                 "%price%", "Rp " + money(total)));
         sound(player, "sell");
         return total;
+    }
+
+    double sellGuiMaterial(Player player, Material material, int requested) {
+        return sellValidated(player, material, requested, true, false);
+    }
+
+    double sellGuiAllMaterial(Player player, Material material) {
+        return sellValidated(player, material, Integer.MAX_VALUE, true, true);
+    }
+
+    double sellMaterial(Player player, Material material, int requested) {
+        return sellValidated(player, material, requested, false, false);
     }
 
     double sellHand(Player player) {
