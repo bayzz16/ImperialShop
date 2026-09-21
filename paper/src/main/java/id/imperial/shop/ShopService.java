@@ -112,6 +112,16 @@ public final class ShopService {
         return Math.max(9, Math.min(45, plugin.getConfig().getInt("settings.page-size", 45)));
     }
 
+    int pageCapacity(int itemCount) {
+        int limited = Math.max(1, Math.min(pageSize(), itemCount));
+        int rows = Math.max(1, Math.min(5, (int) Math.ceil(limited / 9.0)));
+        return rows * 9;
+    }
+
+    int compactGuiSize(int itemCount) {
+        return pageCapacity(itemCount) + 9;
+    }
+
     int quantityMax() {
         return Math.max(64, plugin.getConfig().getInt("settings.quantity-max", 2304));
     }
@@ -293,48 +303,72 @@ public final class ShopService {
     }
 
     private void openMaterialResults(Player player, List<Material> materials, int page, String title, String backData) {
-        int pages = Math.max(1, (int) Math.ceil(materials.size() / (double) pageSize()));
+        int capacity = pageCapacity(materials.size());
+        int pages = Math.max(1, (int) Math.ceil(materials.size() / (double) capacity));
         page = Math.max(0, Math.min(page, pages - 1));
-        Inventory inventory = createGui(GuiType.CATEGORY, guiSize("shop-size"), color(title));
 
-        int start = page * pageSize();
-        int end = Math.min(materials.size(), start + pageSize());
+        Inventory inventory = createGui(GuiType.CATEGORY, compactGuiSize(materials.size()), color(title));
+
+        int start = page * capacity;
+        int end = Math.min(materials.size(), start + capacity);
         for (int i = start; i < end; i++) {
             Material material = materials.get(i);
             Category category = categoryFor(material);
             if (category == null || !canTrade(player, category, material)) continue;
             Price price = prices.get(material);
+
             List<String> lore = new ArrayList<>();
-            if (price != null && price.buy() >= 0) lore.add(color("&7Beli: &eRp " + money(buyPrice(player, material)) + " &8(1x)"));
-            if (price != null && price.sell() >= 0) lore.add(color("&7Jual: &aRp " + money(sellPrice(player, material)) + " &8(1x)"));
-            lore.add(color(plugin.favorites().isFavorite(player, material) ? "&d★ &fFavorit" : "&7☆ &fBukan favorit"));
+            if (price != null && price.buy() >= 0)
+                lore.add(color("&8› &7Beli &8• &eRp " + money(buyPrice(player, material)) + " &8/1x"));
+            if (price != null && price.sell() >= 0)
+                lore.add(color("&8› &7Jual &8• &aRp " + money(sellPrice(player, material)) + " &8/1x"));
             lore.add("");
-            lore.add(color("&8• &fKlik kiri &7→ beli 1"));
-            lore.add(color("&8• &fKlik kanan &7→ jual 1"));
-            lore.add(color("&8• &fShift kanan &7→ jual semua"));
-            lore.add(color("&8• &fKlik tengah &7→ jumlah custom"));
-            lore.add(color("&8• &fShift kiri &7→ favorit/unfavorit"));
+            lore.add(color("&8• &7Klik kiri &fBeli 1"));
+            lore.add(color("&8• &7Klik kanan &fJual 1"));
+            lore.add(color("&8• &7Shift kanan &fJual semua"));
+            lore.add(color("&8• &7Tengah &fJumlah custom"));
+            lore.add(color(plugin.favorites().isFavorite(player, material)
+                    ? "&d★ &fFavorit" : "&8☆ &7Belum favorit"));
+
             inventory.setItem(i - start, icon(material, color("&f&l" + pretty(material)), lore,
                     "resultitem", backData + "|" + category.id() + "|" + material.name()));
         }
 
-        String encoded = Base64.getEncoder().encodeToString(backData.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        inventory.setItem(43, nav(Material.ARROW, "&eSebelumnya", "resultpage:" + encoded + ":" + (page - 1), page > 0));
-        inventory.setItem(45, icon(Material.ARROW, color("&8‹ &eKembali ke Shop"), List.of(), "shop", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.PAPER, color("&fHalaman " + (page + 1) + "/" + pages),
-                List.of(color("&7Hasil: &f" + materials.size())), "none", null));
-        inventory.setItem(53, nav(Material.ARROW, "&aBerikutnya", "resultpage:" + encoded + ":" + (page + 1), page < pages - 1));
+        int bar = inventory.getSize() - 9;
+        String encoded = Base64.getEncoder().encodeToString(
+                backData.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        inventory.setItem(bar, nav(Material.ARROW, "&8‹ &eSebelumnya",
+                "resultpage:" + encoded + ":" + (page - 1), page > 0));
+        inventory.setItem(bar + 2, icon(Material.PAPER, color("&b&lᴄᴀʀɪ"),
+                List.of(color("&8› &7/shop search <kata>")), "search", null));
+        inventory.setItem(bar + 3, icon(Material.GOLD_INGOT, color("&6&lꜱᴀʟᴅᴏ"),
+                List.of(color("&7Rp &e" + money(economy.getBalance(player)))), "none", null));
+        inventory.setItem(bar + 4, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"),
+                List.of(), "close", null));
+        inventory.setItem(bar + 6, icon(Material.ARROW, color("&8‹ &eꜱʜᴏᴘ"),
+                List.of(), "shop", null));
+        inventory.setItem(bar + 7, icon(Material.PAPER, color("&f" + (page + 1) + "&8/&f" + pages),
+                List.of(color("&7" + materials.size() + " item")), "none", null));
+        inventory.setItem(bar + 8, nav(Material.ARROW, "&aBerikutnya ›",
+                "resultpage:" + encoded + ":" + (page + 1), page < pages - 1));
+
         decorate(inventory);
-        inventory.setItem(43, nav(Material.ARROW, "&eSebelumnya", "resultpage:" + encoded + ":" + (page - 1), page > 0));
-        inventory.setItem(45, icon(Material.ARROW, color("&8‹ &eKembali ke Shop"), List.of(), "shop", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.PAPER, color("&fHalaman " + (page + 1) + "/" + pages),
-                List.of(color("&7Hasil: &f" + materials.size())), "none", null));
-        inventory.setItem(53, nav(Material.ARROW, "&aBerikutnya", "resultpage:" + encoded + ":" + (page + 1), page < pages - 1));
+        // Re-apply controls after filler decoration.
+        inventory.setItem(bar, nav(Material.ARROW, "&8‹ &eSebelumnya",
+                "resultpage:" + encoded + ":" + (page - 1), page > 0));
+        inventory.setItem(bar + 2, icon(Material.PAPER, color("&b&lᴄᴀʀɪ"),
+                List.of(color("&8› &7/shop search <kata>")), "search", null));
+        inventory.setItem(bar + 3, icon(Material.GOLD_INGOT, color("&6&lꜱᴀʟᴅᴏ"),
+                List.of(color("&7Rp &e" + money(economy.getBalance(player)))), "none", null));
+        inventory.setItem(bar + 4, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        inventory.setItem(bar + 6, icon(Material.ARROW, color("&8‹ &eꜱʜᴏᴘ"), List.of(), "shop", null));
+        inventory.setItem(bar + 7, icon(Material.PAPER, color("&f" + (page + 1) + "&8/&f" + pages),
+                List.of(color("&7" + materials.size() + " item")), "none", null));
+        inventory.setItem(bar + 8, nav(Material.ARROW, "&aBerikutnya ›",
+                "resultpage:" + encoded + ":" + (page + 1), page < pages - 1));
         player.openInventory(inventory);
     }
-
 
 
     void openShop(Player player, int page) {
@@ -342,54 +376,62 @@ public final class ShopService {
                 .filter(category -> canAccessCategory(player, category))
                 .toList();
 
-        int pages = Math.max(1, (int) Math.ceil(accessible.size() / (double) pageSize()));
+        int capacity = pageCapacity(accessible.size());
+        int pages = Math.max(1, (int) Math.ceil(accessible.size() / (double) capacity));
         page = Math.max(0, Math.min(page, pages - 1));
 
-        Inventory inventory = createGui(GuiType.MAIN, guiSize("shop-size"),
+        Inventory inventory = createGui(GuiType.MAIN, compactGuiSize(accessible.size()),
                 color(plugin.getConfig().getString("gui.main-title", "&b&lIMPERIAL SHOP")));
 
-        int start = page * pageSize();
-        int end = Math.min(accessible.size(), start + pageSize());
+        int start = page * capacity;
+        int end = Math.min(accessible.size(), start + capacity);
         for (int i = start; i < end; i++) {
             Category category = accessible.get(i);
             int slot = i - start;
             inventory.setItem(slot, icon(category.icon(), category.name(),
                     List.of(
-                            color("&7Items: &f" + category.items().size()),
+                            color("&8› &7Items &8• &f" + category.items().size()),
                             "",
-                            color("&aKlik untuk membuka")
+                            color("&a&lKlik untuk membuka ›")
                     ), "category", category.id()));
         }
 
-        inventory.setItem(45, nav(Material.ARROW, "&eHalaman Sebelumnya", "mainpage:" + (page - 1), page > 0));
-        inventory.setItem(46, icon(Material.PAPER, color("&b&lᴄᴀʀɪ ɪᴛᴇᴍ"),
+        int bar = inventory.getSize() - 9;
+        inventory.setItem(bar, nav(Material.ARROW, "&8‹ &eSebelumnya",
+                "mainpage:" + (page - 1), page > 0));
+        inventory.setItem(bar + 1, icon(Material.PAPER, color("&b&lᴄᴀʀɪ"),
                 List.of(color("&8› &7/shop search <kata>")), "search", null));
-        inventory.setItem(48, icon(Material.NETHER_STAR, color("&d&lꜰᴀᴠᴏʀɪᴛ"),
-                List.of(color("&8› &7Item tersimpan di favorit")), "favorites", null));
-        inventory.setItem(47, icon(Material.GOLD_INGOT,
-                color("&6&lSaldo"),
-                List.of(color("&7Saldo: &eRp " + money(economy.getBalance(player)))),
-                "none", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.HOPPER, color("&a&lᴊᴜᴀʟ ɪᴛᴇᴍ"),
-                List.of(color("&8› &7Buka menu penjualan")), "sellgui", null));
-        inventory.setItem(53, nav(Material.ARROW, "&aHalaman Berikutnya", "mainpage:" + (page + 1), page < pages - 1));
+        inventory.setItem(bar + 2, icon(Material.GOLD_INGOT, color("&6&lꜱᴀʟᴅᴏ"),
+                List.of(color("&7Rp &e" + money(economy.getBalance(player)))), "none", null));
+        inventory.setItem(bar + 3, icon(Material.NETHER_STAR, color("&d&lꜰᴀᴠᴏʀɪᴛ"),
+                List.of(color("&8› &7Item tersimpan")), "favorites", null));
+        inventory.setItem(bar + 4, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        inventory.setItem(bar + 6, icon(Material.HOPPER, color("&a&lᴊᴜᴀʟ"),
+                List.of(color("&8› &7Buka Sell GUI")), "sellgui", null));
+        inventory.setItem(bar + 7, icon(Material.PAPER, color("&f" + (page + 1) + "&8/&f" + pages),
+                List.of(color("&7" + accessible.size() + " kategori")), "none", null));
+        inventory.setItem(bar + 8, nav(Material.ARROW, "&aBerikutnya ›",
+                "mainpage:" + (page + 1), page < pages - 1));
+
         decorate(inventory);
-        // Re-apply navigation after filler.
-        inventory.setItem(45, nav(Material.ARROW, "&eHalaman Sebelumnya", "page:-1", page > 0));
-        inventory.setItem(46, icon(Material.PAPER, color("&b&lᴄᴀʀɪ ɪᴛᴇᴍ"),
+        inventory.setItem(bar, nav(Material.ARROW, "&8‹ &eSebelumnya",
+                "mainpage:" + (page - 1), page > 0));
+        inventory.setItem(bar + 1, icon(Material.PAPER, color("&b&lᴄᴀʀɪ"),
                 List.of(color("&8› &7/shop search <kata>")), "search", null));
-        inventory.setItem(48, icon(Material.NETHER_STAR, color("&d&lꜰᴀᴠᴏʀɪᴛ"),
-                List.of(color("&8› &7Item tersimpan di favorit")), "favorites", null));
-        inventory.setItem(47, icon(Material.GOLD_INGOT, color("&6&lSaldo"),
-                List.of(color("&7Saldo: &eRp " + money(economy.getBalance(player)))),
-                "none", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.HOPPER, color("&a&lᴊᴜᴀʟ ɪᴛᴇᴍ"),
-                List.of(color("&8› &7Buka menu penjualan")), "sellgui", null));
-        inventory.setItem(53, nav(Material.ARROW, "&aHalaman Berikutnya", "page:+1", page < pages - 1));
+        inventory.setItem(bar + 2, icon(Material.GOLD_INGOT, color("&6&lꜱᴀʟᴅᴏ"),
+                List.of(color("&7Rp &e" + money(economy.getBalance(player)))), "none", null));
+        inventory.setItem(bar + 3, icon(Material.NETHER_STAR, color("&d&lꜰᴀᴠᴏʀɪᴛ"),
+                List.of(color("&8› &7Item tersimpan")), "favorites", null));
+        inventory.setItem(bar + 4, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        inventory.setItem(bar + 6, icon(Material.HOPPER, color("&a&lᴊᴜᴀʟ"),
+                List.of(color("&8› &7Buka Sell GUI")), "sellgui", null));
+        inventory.setItem(bar + 7, icon(Material.PAPER, color("&f" + (page + 1) + "&8/&f" + pages),
+                List.of(color("&7" + accessible.size() + " kategori")), "none", null));
+        inventory.setItem(bar + 8, nav(Material.ARROW, "&aBerikutnya ›",
+                "mainpage:" + (page + 1), page < pages - 1));
         player.openInventory(inventory);
     }
+
 
     void openCategory(Player player, String id) {
         openCategory(player, id, 0);
@@ -402,63 +444,60 @@ public final class ShopService {
             return;
         }
 
-        int pages = Math.max(1, (int) Math.ceil(category.items().size() / (double) pageSize()));
+        int capacity = pageCapacity(category.items().size());
+        int pages = Math.max(1, (int) Math.ceil(category.items().size() / (double) capacity));
         page = Math.max(0, Math.min(page, pages - 1));
 
-        Inventory inventory = createGui(GuiType.CATEGORY, guiSize("shop-size"),
+        Inventory inventory = createGui(GuiType.CATEGORY, compactGuiSize(category.items().size()),
                 color(plugin.getConfig().getString("gui.category-title", "&b&lSHOP &8» &f%category%")
                         .replace("%category%", ChatColor.stripColor(category.name()))));
 
-        int start = page * pageSize();
-        int end = Math.min(category.items().size(), start + pageSize());
+        int start = page * capacity;
+        int end = Math.min(category.items().size(), start + capacity);
         for (int i = start; i < end; i++) {
             Material material = category.items().get(i);
             if (!canTrade(player, category, material)) continue;
             Price price = prices.get(material);
 
             List<String> lore = new ArrayList<>();
-            if (price != null && price.buy() >= 0) {
-                lore.add(color("&7Beli: &eRp " + money(buyPrice(player, material)) + " &8(1x)"));
-                lore.add(color("&7Limit beli: &f" + price.minBuy() + "–" + price.maxBuy()));
-                lore.add(color("&7Shift+Click: &e64x"));
-            } else {
-                lore.add(color("&cTidak dapat dibeli"));
-            }
-            if (price != null && price.sell() >= 0) {
-                lore.add(color("&7Jual: &aRp " + money(sellPrice(player, material)) + " &8(1x)"));
-                lore.add(color("&7Limit jual: &f" + price.minSell() + "–" + price.maxSell()));
-                lore.add(color("&7Shift+Klik kanan: &aJual semua"));
-            } else {
-                lore.add(color("&cTidak dapat dijual"));
-            }
+            if (price != null && price.buy() >= 0)
+                lore.add(color("&eRp " + money(buyPrice(player, material)) + " &8• &7Beli"));
+            if (price != null && price.sell() >= 0)
+                lore.add(color("&aRp " + money(sellPrice(player, material)) + " &8• &7Jual"));
             lore.add("");
-            lore.add(color("&8• &fKlik kiri &7→ beli 1"));
-            lore.add(color("&8• &fKlik kanan &7→ jual 1"));
-            lore.add(color("&8• &fShift kiri &7→ beli 64"));
-            lore.add(color("&8• &fShift kanan &7→ jual semua"));
-            lore.add(color("&8• &fKlik tengah &7→ jumlah custom"));
+            lore.add(color("&8• &7Klik kiri &fBeli 1"));
+            lore.add(color("&8• &7Klik kanan &fJual 1"));
+            lore.add(color("&8• &7Shift kiri &fBeli 64"));
+            lore.add(color("&8• &7Shift kanan &fJual semua"));
+            lore.add(color("&8• &7Tengah &fJumlah custom"));
 
             inventory.setItem(i - start, icon(material, color("&f&l" + pretty(material)), lore,
                     "item", category.id() + "|" + material.name()));
         }
 
-        inventory.setItem(45, icon(Material.ARROW, color("&8‹ &eKembali"), List.of(), "back", null));
-        inventory.setItem(47, icon(Material.HOPPER, color("&aJual GUI"), List.of(), "sellgui", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.PAPER, color("&fHalaman " + (page + 1) + "/" + pages),
-                List.of(color("&7Kategori: &f" + category.name())), "none", null));
-        inventory.setItem(53, nav(Material.ARROW, "&aBerikutnya", "catpage:" + id + ":" + (page + 1), page < pages - 1));
-        inventory.setItem(43, nav(Material.ARROW, "&eSebelumnya", "catpage:" + id + ":" + (page - 1), page > 0));
+        int bar = inventory.getSize() - 9;
+        inventory.setItem(bar, icon(Material.ARROW, color("&8‹ &eꜱʜᴏᴘ"),
+                List.of(), "back", null));
+        inventory.setItem(bar + 2, icon(Material.HOPPER, color("&a&lᴊᴜᴀʟ"),
+                List.of(color("&8› &7Buka Sell GUI")), "sellgui", null));
+        inventory.setItem(bar + 3, icon(Material.PAPER, color("&f" + (page + 1) + "&8/&f" + pages),
+                List.of(color("&7" + category.items().size() + " item")), "none", null));
+        inventory.setItem(bar + 4, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        inventory.setItem(bar + 8, nav(Material.ARROW, "&aBerikutnya ›",
+                "catpage:" + id + ":" + (page + 1), page < pages - 1));
+
         decorate(inventory);
-        inventory.setItem(45, icon(Material.ARROW, color("&8‹ &eKembali"), List.of(), "back", null));
-        inventory.setItem(47, icon(Material.HOPPER, color("&aJual GUI"), List.of(), "sellgui", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.PAPER, color("&fHalaman " + (page + 1) + "/" + pages),
-                List.of(color("&7Kategori: &f" + category.name())), "none", null));
-        inventory.setItem(43, nav(Material.ARROW, "&eSebelumnya", "catpage:" + id + ":" + (page - 1), page > 0));
-        inventory.setItem(53, nav(Material.ARROW, "&aBerikutnya", "catpage:" + id + ":" + (page + 1), page < pages - 1));
+        inventory.setItem(bar, icon(Material.ARROW, color("&8‹ &eꜱʜᴏᴘ"), List.of(), "back", null));
+        inventory.setItem(bar + 2, icon(Material.HOPPER, color("&a&lᴊᴜᴀʟ"),
+                List.of(color("&8› &7Buka Sell GUI")), "sellgui", null));
+        inventory.setItem(bar + 3, icon(Material.PAPER, color("&f" + (page + 1) + "&8/&f" + pages),
+                List.of(color("&7" + category.items().size() + " item")), "none", null));
+        inventory.setItem(bar + 4, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        inventory.setItem(bar + 8, nav(Material.ARROW, "&aBerikutnya ›",
+                "catpage:" + id + ":" + (page + 1), page < pages - 1));
         player.openInventory(inventory);
     }
+
 
     void openSellGui(Player player) {
         returnSellInput(player);
@@ -492,52 +531,55 @@ public final class ShopService {
     }
 
     void openSell(Player player) {
-        Inventory inventory = createGui(GuiType.SELL_LIST, guiSize("sell-size"),
-                color(plugin.getConfig().getString("gui.sell-title", "&a&lSELL GUI")));
-
         List<Material> materials = new ArrayList<>();
         for (ItemStack stack : player.getInventory().getStorageContents()) {
-            if (stack == null || stack.getType().isAir() || !materials.contains(stack.getType())) {
-                if (stack != null && !stack.getType().isAir() && prices.containsKey(stack.getType())) {
-                    Category category = categoryFor(stack.getType());
-                    if (category != null && canSellGuiItem(player, category, stack.getType())) {
-                        materials.add(stack.getType());
-                    }
+            if (stack == null || stack.getType().isAir() || materials.contains(stack.getType())) continue;
+            if (prices.containsKey(stack.getType())) {
+                Category category = categoryFor(stack.getType());
+                if (category != null && canSellGuiItem(player, category, stack.getType())) {
+                    materials.add(stack.getType());
                 }
             }
         }
 
+        int capacity = pageCapacity(materials.size());
+        Inventory inventory = createGui(GuiType.SELL_LIST, compactGuiSize(materials.size()),
+                color(plugin.getConfig().getString("gui.sell-title", "&a&lꜱᴇʟʟ")));
+
         int slot = 0;
         for (Material material : materials) {
-            if (slot >= pageSize()) break;
+            if (slot >= capacity) break;
             int amount = count(player, material);
             double sell = sellPrice(player, material);
             inventory.setItem(slot++, icon(material, color("&f&l" + pretty(material)),
                     List.of(
-                            color("&8› &7Harga &8• &aRp " + money(sell) + " &8/ item"),
-                            color("&7Jumlah: &f" + amount),
+                            color("&aRp " + money(sell) + " &8• &7/ item"),
+                            color("&7Jumlah &8• &f" + amount),
                             "",
-                            color("&aKlik kiri &7→ jual semua"),
-                            color("&eKlik kanan &7→ jual 1"),
-                            color("&8• &fKlik tengah &7→ jumlah custom")
+                            color("&8• &aKlik kiri &fJual semua"),
+                            color("&8• &eKlik kanan &fJual 1"),
+                            color("&8• &7Tengah &fJumlah custom")
                     ), "sell", material.name()));
         }
 
-        inventory.setItem(45, icon(Material.GOLD_INGOT, color("&a&lᴊᴜᴀʟ ꜱᴇᴍᴜᴀ"),
-                List.of(color("&7Jual semua item yang terdaftar.")), "sellall", null));
-        inventory.setItem(47, icon(Material.CHEST, color("&e&lᴊᴜᴀʟ ᴛᴀɴɢᴀɴ"),
-                List.of(color("&7Jual seluruh stack di tangan.")), "sellhand", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.ARROW, color("&8‹ &eKembali ke Shop"), List.of(), "shop", null));
+        int bar = inventory.getSize() - 9;
+        inventory.setItem(bar, icon(Material.GOLD_INGOT, color("&a&lᴊᴜᴀʟ ꜱᴇᴍᴜᴀ"),
+                List.of(color("&7Jual semua item terdaftar")), "sellall", null));
+        inventory.setItem(bar + 2, icon(Material.CHEST, color("&e&lᴊᴜᴀʟ ᴛᴀɴɢᴀɴ"),
+                List.of(color("&7Jual stack di tangan")), "sellhand", null));
+        inventory.setItem(bar + 4, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        inventory.setItem(bar + 6, icon(Material.ARROW, color("&8‹ &eꜱʜᴏᴘ"), List.of(), "shop", null));
+
         decorate(inventory);
-        inventory.setItem(45, icon(Material.GOLD_INGOT, color("&a&lᴊᴜᴀʟ ꜱᴇᴍᴜᴀ"),
-                List.of(color("&7Jual semua item yang terdaftar.")), "sellall", null));
-        inventory.setItem(47, icon(Material.CHEST, color("&e&lᴊᴜᴀʟ ᴛᴀɴɢᴀɴ"),
-                List.of(color("&7Jual seluruh stack di tangan.")), "sellhand", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.ARROW, color("&8‹ &eKembali ke Shop"), List.of(), "shop", null));
+        inventory.setItem(bar, icon(Material.GOLD_INGOT, color("&a&lᴊᴜᴀʟ ꜱᴇᴍᴜᴀ"),
+                List.of(color("&7Jual semua item terdaftar")), "sellall", null));
+        inventory.setItem(bar + 2, icon(Material.CHEST, color("&e&lᴊᴜᴀʟ ᴛᴀɴɢᴀɴ"),
+                List.of(color("&7Jual stack di tangan")), "sellhand", null));
+        inventory.setItem(bar + 4, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        inventory.setItem(bar + 6, icon(Material.ARROW, color("&8‹ &eꜱʜᴏᴘ"), List.of(), "shop", null));
         player.openInventory(inventory);
     }
+
 
     void openQuantity(Player player, String categoryId, Material material) {
         Category category = categories.get(categoryId);
