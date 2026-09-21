@@ -551,7 +551,10 @@ public final class ShopService {
             return;
         }
         int max = Math.min(quantityMax(), Math.max(price.maxBuy(), price.maxSell()));
-        quantities.put(player.getUniqueId(), new QuantitySession(categoryId, material, 1, max));
+        int initial = Math.min(max, Math.max(1, Math.min(
+                price.buy() >= 0 ? price.minBuy() : Integer.MAX_VALUE,
+                price.sell() >= 0 ? price.minSell() : Integer.MAX_VALUE)));
+        quantities.put(player.getUniqueId(), new QuantitySession(categoryId, material, initial, max));
         renderQuantity(player);
     }
 
@@ -569,8 +572,13 @@ public final class ShopService {
         double buy = buyPrice(player, material);
         double sell = sellPrice(player, material);
 
-        inventory.setItem(10, icon(Material.REDSTONE_TORCH, color("&c-16"), List.of(), "qty:-16", null));
-        inventory.setItem(11, icon(Material.REDSTONE, color("&c-1"), List.of(), "qty:-1", null));
+        boolean canDecrease16 = amount > 16;
+        boolean canDecrease1 = amount > 1;
+        boolean canIncrease1 = amount < session.max();
+        boolean canIncrease16 = amount <= session.max() - 16;
+
+        inventory.setItem(10, nav(Material.REDSTONE_TORCH, "&c-16", "qty:-16", canDecrease16));
+        inventory.setItem(11, nav(Material.REDSTONE, "&c-1", "qty:-1", canDecrease1));
         inventory.setItem(13, icon(material, color("&f&l" + amount + "x"),
                 List.of(
                         color("&7Beli: &eRp " + (buy >= 0 ? money(buy * amount) : "-")),
@@ -578,8 +586,8 @@ public final class ShopService {
                         color("&7Rentang beli: &f" + price.minBuy() + "–" + price.maxBuy()),
                         color("&7Rentang jual: &f" + price.minSell() + "–" + price.maxSell())
                 ), "none", null));
-        inventory.setItem(15, icon(Material.GLOWSTONE_DUST, color("&a+1"), List.of(), "qty:+1", null));
-        inventory.setItem(16, icon(Material.GLOWSTONE, color("&a+16"), List.of(), "qty:+16", null));
+        inventory.setItem(15, nav(Material.GLOWSTONE_DUST, "&a+1", "qty:+1", canIncrease1));
+        inventory.setItem(16, nav(Material.GLOWSTONE, "&a+16", "qty:+16", canIncrease16));
         inventory.setItem(20, icon(Material.EMERALD, color("&a&lBeli " + amount + "x"),
                 List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))),
                 "buy:selected", null));
@@ -656,7 +664,16 @@ public final class ShopService {
             message(player, "no-permission");
             return false;
         }
-        amount = Math.min(amount, price.maxBuy());
+        if (amount < price.minBuy()) {
+            message(player, "below-min-buy", Map.of("%amount%", String.valueOf(price.minBuy())));
+            sound(player, "fail");
+            return false;
+        }
+        if (amount > price.maxBuy()) {
+            message(player, "above-max-buy", Map.of("%amount%", String.valueOf(price.maxBuy())));
+            sound(player, "fail");
+            return false;
+        }
         if (!tryTransaction(player)) return false;
         double unit = buyPrice(player, material);
         double total = unit * amount;
