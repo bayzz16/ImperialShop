@@ -37,7 +37,7 @@ public final class SellAllCommand implements CommandExecutor {
         if (args.length > 0) {
             Material material = Material.matchMaterial(args[0]);
             if (material != null) {
-                double total = shop.sellMaterial(player, material, Integer.MAX_VALUE);
+                double total = shop.sellAllMaterial(player, material);
                 if (total > 0) {
                     player.sendMessage("§aBerhasil menjual " + shop.pretty(material) + ": §fRp " + shop.money(total));
                 } else {
