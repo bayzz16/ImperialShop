@@ -26,6 +26,39 @@ public final class ShopService {
     private final Map<UUID, QuantitySession> quantities = new HashMap<>();
     private final Map<UUID, Inventory> sellInputs = new HashMap<>();
 
+    enum GuiType {
+        MAIN, CATEGORY, QUANTITY, SELL_LIST, SELL_INPUT
+    }
+
+    static final class ShopHolder implements org.bukkit.inventory.InventoryHolder {
+        private final GuiType type;
+        private Inventory inventory;
+
+        ShopHolder(GuiType type) {
+            this.type = type;
+        }
+
+        void bind(Inventory inventory) {
+            this.inventory = inventory;
+        }
+
+        GuiType type() {
+            return type;
+        }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
+    }
+
+    private Inventory createGui(GuiType type, int size, String title) {
+        ShopHolder holder = new ShopHolder(type);
+        Inventory inventory = Bukkit.createInventory(holder, size, title);
+        holder.bind(inventory);
+        return inventory;
+    }
+
     ShopService(ImperialShopPlugin plugin, Economy economy) {
         this.plugin = plugin;
         this.economy = economy;
@@ -226,7 +259,7 @@ public final class ShopService {
         int pages = Math.max(1, (int) Math.ceil(accessible.size() / (double) pageSize()));
         page = Math.max(0, Math.min(page, pages - 1));
 
-        Inventory inventory = Bukkit.createInventory(null, guiSize("shop-size"),
+        Inventory inventory = createGui(GuiType.MAIN, guiSize("shop-size"),
                 color(plugin.getConfig().getString("gui.main-title", "&b&lIMPERIAL SHOP")));
 
         int start = page * pageSize();
@@ -278,7 +311,7 @@ public final class ShopService {
         int pages = Math.max(1, (int) Math.ceil(category.items().size() / (double) pageSize()));
         page = Math.max(0, Math.min(page, pages - 1));
 
-        Inventory inventory = Bukkit.createInventory(null, guiSize("shop-size"),
+        Inventory inventory = createGui(GuiType.CATEGORY, guiSize("shop-size"),
                 color(plugin.getConfig().getString("gui.category-title", "&b&lSHOP &8» &f%category%")
                         .replace("%category%", ChatColor.stripColor(category.name()))));
 
@@ -334,7 +367,7 @@ public final class ShopService {
     void openSellGui(Player player) {
         returnSellInput(player);
 
-        Inventory inventory = Bukkit.createInventory(null, 54,
+        Inventory inventory = createGui(GuiType.SELL_INPUT, 54,
                 color(plugin.getConfig().getString("gui.sell-input-title", "&a&lIMPERIAL SELL GUI")));
 
         for (int slot = 0; slot < 45; slot++) {
@@ -363,7 +396,7 @@ public final class ShopService {
     }
 
     void openSell(Player player) {
-        Inventory inventory = Bukkit.createInventory(null, guiSize("sell-size"),
+        Inventory inventory = createGui(GuiType.SELL_LIST, guiSize("sell-size"),
                 color(plugin.getConfig().getString("gui.sell-title", "&a&lSELL GUI")));
 
         List<Material> materials = new ArrayList<>();
@@ -428,7 +461,7 @@ public final class ShopService {
 
         Material material = session.material();
         int amount = session.amount();
-        Inventory inventory = Bukkit.createInventory(null, 27,
+        Inventory inventory = createGui(GuiType.QUANTITY, 27,
                 color(plugin.getConfig().getString("gui.quantity-title", "&b&lTRANSAKSI &8» &f%item%")
                         .replace("%item%", pretty(material))));
 
@@ -574,14 +607,16 @@ public final class ShopService {
         Category category = categoryFor(material);
         if (category == null || !canSellHand(player, category, material)) return 0;
 
-        int amount = stack.getAmount();
+        ItemStack backup = stack.clone();
+        int amount = backup.getAmount();
         double total = sellPrice(player, material) * amount;
         if (amount < 1 || !Double.isFinite(total) || total < 0) return 0;
-        if (!removeMaterial(player, material, amount)) return 0;
+
+        player.getInventory().setItemInMainHand(null);
 
         EconomyResponse response = economy.depositPlayer(player, total);
         if (!response.transactionSuccess()) {
-            addMaterialBack(player, material, amount);
+            player.getInventory().setItemInMainHand(backup);
             return 0;
         }
 
@@ -680,6 +715,10 @@ public final class ShopService {
             }
             input.setItem(slot, null);
         }
+    }
+
+    Inventory sellInput(Player player) {
+        return sellInputs.get(player.getUniqueId());
     }
 
     double sellContents(Player player) {
