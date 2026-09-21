@@ -3,9 +3,20 @@ settings:
   locale: "id-ID"
   shop-size: 54
   sell-size: 54
+  page-size: 45
+  quantity-max: 2304
+  filler-material: "GRAY_STAINED_GLASS_PANE"
+  fill-empty-slots: true
   sounds: true
+
+gui:
+  main-title: "&b&lIMPERIAL SHOP"
+  category-title: "&b&lSHOP &8» &f%category%"
+  quantity-title: "&b&lTRANSAKSI &8» &f%item%"
+  sell-title: "&a&lSELL GUI"
+
 messages:
-  no-permission: "&cKamu tidak memiliki izin."
+  no-permission: "&cKamu tidak memiliki izin untuk shop/item ini."
   economy-missing: "&cVault economy tidak tersedia."
   not-enough-money: "&cSaldo tidak cukup. Dibutuhkan &f%price%&c."
   inventory-full: "&cInventory penuh atau tidak memiliki ruang cukup."
@@ -13,69 +24,227 @@ messages:
   sold: "&aBerhasil menjual &f%amount%x %item% &adengan hasil &f%price%&a."
   nothing-to-sell: "&cTidak ada item yang dapat dijual."
   reloaded: "&aImperialShop berhasil di-reload."
+
+sounds:
+  buy: "ENTITY_EXPERIENCE_ORB_PICKUP"
+  sell: "ENTITY_VILLAGER_YES"
+  fail: "ENTITY_VILLAGER_NO"
+
+price-modifiers:
+  vip:
+    permission: "imperialshop.modifier.vip"
+    buy-multiplier: 0.90
+    sell-multiplier: 1.10
+  premium:
+    permission: "imperialshop.modifier.premium"
+    buy-multiplier: 0.85
+    sell-multiplier: 1.15
+
 categories:
   blocks:
     material: "STONE"
     name: "&bBlocks"
-    items: [STONE, COBBLESTONE, OAK_LOG, OAK_PLANKS, GLASS]
+    items: [STONE, COBBLESTONE, DEEPSLATE, COBBLED_DEEPSLATE, ANDESITE, DIORITE, GRANITE, TUFF, CALCITE, SAND, RED_SAND, GRAVEL, DIRT, GRASS_BLOCK, CLAY, BRICKS, GLASS, GLASS_PANE, OBSIDIAN, OAK_LOG, BIRCH_LOG, SPRUCE_LOG, JUNGLE_LOG, ACACIA_LOG, DARK_OAK_LOG, MANGROVE_LOG, OAK_PLANKS, BIRCH_PLANKS, SPRUCE_PLANKS, JUNGLE_PLANKS, ACACIA_PLANKS, DARK_OAK_PLANKS, MANGROVE_PLANKS, OAK_SLAB, OAK_STAIRS, COBBLESTONE_SLAB, COBBLESTONE_STAIRS]
   ores:
     material: "DIAMOND"
     name: "&bOres & Minerals"
-    items: [COAL, IRON_INGOT, GOLD_INGOT, REDSTONE, LAPIS_LAZULI, DIAMOND, EMERALD, ANCIENT_DEBRIS, NETHERITE_INGOT]
+    items: [COAL, CHARCOAL, RAW_IRON, IRON_INGOT, IRON_NUGGET, RAW_GOLD, GOLD_INGOT, GOLD_NUGGET, RAW_COPPER, COPPER_INGOT, REDSTONE, LAPIS_LAZULI, DIAMOND, EMERALD, AMETHYST_SHARD, QUARTZ, NETHERITE_SCRAP, ANCIENT_DEBRIS, NETHERITE_INGOT]
   farming:
     material: "WHEAT"
     name: "&aFarming"
-    items: [WHEAT, CARROT, POTATO, BEETROOT, SUGAR_CANE, CACTUS, PUMPKIN, MELON_SLICE]
+    items: [WHEAT, WHEAT_SEEDS, CARROT, POTATO, BEETROOT, BEETROOT_SEEDS, MELON_SLICE, MELON_SEEDS, PUMPKIN, PUMPKIN_SEEDS, SUGAR_CANE, CACTUS, COCOA_BEANS, BAMBOO, KELP, SWEET_BERRIES, GLOW_BERRIES, NETHER_WART]
   mobdrops:
     material: "ROTTEN_FLESH"
     name: "&cMob Drops"
-    items: [ROTTEN_FLESH, BONE, STRING, GUNPOWDER, SPIDER_EYE, ENDER_PEARL, BLAZE_ROD]
+    items: [ROTTEN_FLESH, BONE, BONE_MEAL, STRING, SPIDER_EYE, GUNPOWDER, ENDER_PEARL, BLAZE_ROD, BLAZE_POWDER, MAGMA_CREAM, GHAST_TEAR, SLIME_BALL, PHANTOM_MEMBRANE, PRISMARINE_SHARD, PRISMARINE_CRYSTALS, SHULKER_SHELL, RABBIT_FOOT]
+  nether:
+    material: "NETHERRACK"
+    name: "&4Nether"
+    items: [NETHERRACK, SOUL_SAND, SOUL_SOIL, NETHER_BRICKS, NETHER_QUARTZ_ORE, GLOWSTONE_DUST, CRIMSON_STEM, WARPED_STEM, CRIMSON_PLANKS, WARPED_PLANKS, MAGMA_BLOCK, BASALT, BLACKSTONE]
+  end:
+    material: "END_STONE"
+    name: "&5The End"
+    items: [END_STONE, END_STONE_BRICKS, PURPUR_BLOCK, PURPUR_PILLAR, CHORUS_FRUIT, POPPED_CHORUS_FRUIT, ENDER_PEARL, SHULKER_SHELL]
+  redstone:
+    material: "REDSTONE"
+    name: "&cRedstone"
+    items: [REDSTONE, REDSTONE_TORCH, REPEATER, COMPARATOR, PISTON, STICKY_PISTON, OBSERVER, HOPPER, DISPENSER, DROPPER, NOTE_BLOCK, LEVER, STONE_BUTTON, OAK_BUTTON, TRIPWIRE_HOOK]
   utility:
     material: "CHEST"
     name: "&eUtility"
-    items: [CHEST, HOPPER, BUCKET, WATER_BUCKET, LAVA_BUCKET, TORCH]
+    items: [CHEST, BARREL, SHULKER_BOX, HOPPER, BUCKET, WATER_BUCKET, LAVA_BUCKET, FLINT_AND_STEEL, TORCH, LANTERN, SOUL_LANTERN, CRAFTING_TABLE, FURNACE, BLAST_FURNACE, SMOKER, ANVIL, ENCHANTING_TABLE]
   food:
     material: "COOKED_BEEF"
     name: "&6Food"
-    items: [WHEAT, BREAD, APPLE, COOKED_BEEF, COOKED_CHICKEN, GOLDEN_CARROT]
+    items: [BREAD, APPLE, CARROT, POTATO, BAKED_POTATO, COOKED_BEEF, COOKED_PORKCHOP, COOKED_CHICKEN, COOKED_MUTTON, COOKED_RABBIT, COOKED_COD, COOKED_SALMON, GOLDEN_CARROT, PUMPKIN_PIE, COOKIE, CAKE]
+  farming-special:
+    material: "GOLDEN_CARROT"
+    name: "&6Farming & Rare"
+    items: [HONEYCOMB, HONEY_BOTTLE, EGG, FEATHER, LEATHER, RABBIT_HIDE, INK_SAC, GLOW_INK_SAC]
+
 prices:
   STONE: {buy: 2500, sell: 1000}
   COBBLESTONE: {buy: 1800, sell: 700}
-  OAK_LOG: {buy: 12000, sell: 5000}
-  OAK_PLANKS: {buy: 3000, sell: 1200}
+  DEEPSLATE: {buy: 3500, sell: 1400}
+  COBBLED_DEEPSLATE: {buy: 3000, sell: 1200}
+  ANDESITE: {buy: 3000, sell: 1200}
+  DIORITE: {buy: 3000, sell: 1200}
+  GRANITE: {buy: 3000, sell: 1200}
+  TUFF: {buy: 3500, sell: 1400}
+  CALCITE: {buy: 4500, sell: 1800}
+  SAND: {buy: 3000, sell: 1200}
+  RED_SAND: {buy: 3500, sell: 1400}
+  GRAVEL: {buy: 2800, sell: 1100}
+  DIRT: {buy: 2200, sell: 900}
+  GRASS_BLOCK: {buy: 6000, sell: 2400}
+  CLAY: {buy: 5000, sell: 2000}
+  BRICKS: {buy: 9000, sell: 3600}
   GLASS: {buy: 5000, sell: 2000}
+  GLASS_PANE: {buy: 2500, sell: 1000}
+  OBSIDIAN: {buy: 35000, sell: 14000}
+  OAK_LOG: {buy: 12000, sell: 5000}
+  BIRCH_LOG: {buy: 12000, sell: 5000}
+  SPRUCE_LOG: {buy: 12000, sell: 5000}
+  JUNGLE_LOG: {buy: 12500, sell: 5200}
+  ACACIA_LOG: {buy: 12500, sell: 5200}
+  DARK_OAK_LOG: {buy: 13000, sell: 5400}
+  MANGROVE_LOG: {buy: 14000, sell: 5800}
+  OAK_PLANKS: {buy: 3000, sell: 1200}
+  BIRCH_PLANKS: {buy: 3000, sell: 1200}
+  SPRUCE_PLANKS: {buy: 3000, sell: 1200}
+  JUNGLE_PLANKS: {buy: 3200, sell: 1300}
+  ACACIA_PLANKS: {buy: 3200, sell: 1300}
+  DARK_OAK_PLANKS: {buy: 3400, sell: 1400}
+  MANGROVE_PLANKS: {buy: 3500, sell: 1500}
+  OAK_SLAB: {buy: 1800, sell: 700}
+  OAK_STAIRS: {buy: 3000, sell: 1200}
+  COBBLESTONE_SLAB: {buy: 1200, sell: 500}
+  COBBLESTONE_STAIRS: {buy: 2200, sell: 900}
   COAL: {buy: 15000, sell: 6000}
+  CHARCOAL: {buy: 15000, sell: 6000}
+  RAW_IRON: {buy: 50000, sell: 20000}
   IRON_INGOT: {buy: 75000, sell: 30000}
+  IRON_NUGGET: {buy: 8500, sell: 3400}
+  RAW_GOLD: {buy: 85000, sell: 34000}
   GOLD_INGOT: {buy: 125000, sell: 50000}
+  GOLD_NUGGET: {buy: 14000, sell: 5600}
+  RAW_COPPER: {buy: 18000, sell: 7200}
+  COPPER_INGOT: {buy: 30000, sell: 12000}
   REDSTONE: {buy: 18000, sell: 7000}
   LAPIS_LAZULI: {buy: 20000, sell: 8000}
   DIAMOND: {buy: 2500000, sell: 1000000}
   EMERALD: {buy: 3500000, sell: 1400000}
+  AMETHYST_SHARD: {buy: 30000, sell: 12000}
+  QUARTZ: {buy: 25000, sell: 10000}
+  NETHERITE_SCRAP: {buy: 20000000, sell: 8000000}
   ANCIENT_DEBRIS: {buy: 15000000, sell: 6000000}
   NETHERITE_INGOT: {buy: 75000000, sell: 30000000}
   WHEAT: {buy: 4500, sell: 1800}
+  WHEAT_SEEDS: {buy: 1500, sell: 600}
   CARROT: {buy: 5000, sell: 2000}
   POTATO: {buy: 4500, sell: 1800}
   BEETROOT: {buy: 4000, sell: 1600}
+  BEETROOT_SEEDS: {buy: 1400, sell: 500}
+  MELON_SLICE: {buy: 2500, sell: 1000}
+  MELON_SEEDS: {buy: 1500, sell: 600}
+  PUMPKIN: {buy: 9000, sell: 3600}
+  PUMPKIN_SEEDS: {buy: 1500, sell: 600}
   SUGAR_CANE: {buy: 6000, sell: 2400}
   CACTUS: {buy: 7000, sell: 2800}
-  PUMPKIN: {buy: 9000, sell: 3600}
-  MELON_SLICE: {buy: 2500, sell: 1000}
+  COCOA_BEANS: {buy: 6000, sell: 2400}
+  BAMBOO: {buy: 5000, sell: 2000}
+  KELP: {buy: 3000, sell: 1200}
+  SWEET_BERRIES: {buy: 5000, sell: 2000}
+  GLOW_BERRIES: {buy: 6500, sell: 2600}
+  NETHER_WART: {buy: 9000, sell: 3600}
   ROTTEN_FLESH: {buy: 3500, sell: 1400}
   BONE: {buy: 6500, sell: 2600}
+  BONE_MEAL: {buy: 3500, sell: 1400}
   STRING: {buy: 9000, sell: 3600}
-  GUNPOWDER: {buy: 25000, sell: 10000}
   SPIDER_EYE: {buy: 12000, sell: 4800}
+  GUNPOWDER: {buy: 25000, sell: 10000}
   ENDER_PEARL: {buy: 150000, sell: 60000}
   BLAZE_ROD: {buy: 250000, sell: 100000}
-  CHEST: {buy: 25000, sell: 10000}
+  BLAZE_POWDER: {buy: 125000, sell: 50000}
+  MAGMA_CREAM: {buy: 90000, sell: 36000}
+  GHAST_TEAR: {buy: 350000, sell: 140000}
+  SLIME_BALL: {buy: 40000, sell: 16000}
+  PHANTOM_MEMBRANE: {buy: 100000, sell: 40000}
+  PRISMARINE_SHARD: {buy: 30000, sell: 12000}
+  PRISMARINE_CRYSTALS: {buy: 45000, sell: 18000}
+  SHULKER_SHELL: {buy: 500000, sell: 200000}
+  RABBIT_FOOT: {buy: 100000, sell: 40000}
+  NETHERRACK: {buy: 2500, sell: 1000}
+  SOUL_SAND: {buy: 7000, sell: 2800}
+  SOUL_SOIL: {buy: 6500, sell: 2600}
+  NETHER_BRICKS: {buy: 10000, sell: 4000}
+  NETHER_QUARTZ_ORE: {buy: 30000, sell: 12000}
+  GLOWSTONE_DUST: {buy: 12000, sell: 4800}
+  CRIMSON_STEM: {buy: 14000, sell: 5600}
+  WARPED_STEM: {buy: 14000, sell: 5600}
+  CRIMSON_PLANKS: {buy: 3500, sell: 1400}
+  WARPED_PLANKS: {buy: 3500, sell: 1400}
+  MAGMA_BLOCK: {buy: 18000, sell: 7200}
+  BASALT: {buy: 5000, sell: 2000}
+  BLACKSTONE: {buy: 6000, sell: 2400}
+  END_STONE: {buy: 7000, sell: 2800}
+  END_STONE_BRICKS: {buy: 9000, sell: 3600}
+  PURPUR_BLOCK: {buy: 12000, sell: 4800}
+  PURPUR_PILLAR: {buy: 14000, sell: 5600}
+  CHORUS_FRUIT: {buy: 15000, sell: 6000}
+  POPPED_CHORUS_FRUIT: {buy: 20000, sell: 8000}
+  REDSTONE_TORCH: {buy: 5000, sell: 2000}
+  REPEATER: {buy: 18000, sell: 7200}
+  COMPARATOR: {buy: 22000, sell: 8800}
+  PISTON: {buy: 45000, sell: 18000}
+  STICKY_PISTON: {buy: 65000, sell: 26000}
+  OBSERVER: {buy: 70000, sell: 28000}
   HOPPER: {buy: 250000, sell: 100000}
+  DISPENSER: {buy: 35000, sell: 14000}
+  DROPPER: {buy: 30000, sell: 12000}
+  NOTE_BLOCK: {buy: 30000, sell: 12000}
+  LEVER: {buy: 3000, sell: 1200}
+  STONE_BUTTON: {buy: 2500, sell: 1000}
+  OAK_BUTTON: {buy: 2500, sell: 1000}
+  TRIPWIRE_HOOK: {buy: 10000, sell: 4000}
+  CHEST: {buy: 25000, sell: 10000}
+  BARREL: {buy: 30000, sell: 12000}
+  SHULKER_BOX: {buy: 1500000, sell: 600000}
   BUCKET: {buy: 30000, sell: 12000}
   WATER_BUCKET: {buy: 35000, sell: 14000}
   LAVA_BUCKET: {buy: 45000, sell: 18000}
+  FLINT_AND_STEEL: {buy: 25000, sell: 10000}
   TORCH: {buy: 2000, sell: 800}
+  LANTERN: {buy: 7000, sell: 2800}
+  SOUL_LANTERN: {buy: 9000, sell: 3600}
+  CRAFTING_TABLE: {buy: 5000, sell: 2000}
+  FURNACE: {buy: 12000, sell: 4800}
+  BLAST_FURNACE: {buy: 80000, sell: 32000}
+  SMOKER: {buy: 60000, sell: 24000}
+  ANVIL: {buy: 150000, sell: 60000}
+  ENCHANTING_TABLE: {buy: 750000, sell: 300000}
   BREAD: {buy: 8000, sell: 3200}
   APPLE: {buy: 12000, sell: 4800}
+  BAKED_POTATO: {buy: 7000, sell: 2800}
   COOKED_BEEF: {buy: 18000, sell: 7200}
+  COOKED_PORKCHOP: {buy: 18000, sell: 7200}
   COOKED_CHICKEN: {buy: 15000, sell: 6000}
+  COOKED_MUTTON: {buy: 17000, sell: 6800}
+  COOKED_RABBIT: {buy: 20000, sell: 8000}
+  COOKED_COD: {buy: 12000, sell: 4800}
+  COOKED_SALMON: {buy: 16000, sell: 6400}
   GOLDEN_CARROT: {buy: 125000, sell: 50000}
+  PUMPKIN_PIE: {buy: 14000, sell: 5600}
+  COOKIE: {buy: 4000, sell: 1600}
+  CAKE: {buy: 50000, sell: 20000}
+  HONEYCOMB: {buy: 15000, sell: 6000}
+  HONEY_BOTTLE: {buy: 25000, sell: 10000}
+  EGG: {buy: 3500, sell: 1400}
+  FEATHER: {buy: 5000, sell: 2000}
+  LEATHER: {buy: 12000, sell: 4800}
+  RABBIT_HIDE: {buy: 7000, sell: 2800}
+  INK_SAC: {buy: 9000, sell: 3600}
+  GLOW_INK_SAC: {buy: 15000, sell: 6000}
+
+display-names: {}
+item-permissions: {}
