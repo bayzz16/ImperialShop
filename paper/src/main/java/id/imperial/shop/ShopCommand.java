@@ -33,10 +33,23 @@ public final class ShopCommand implements CommandExecutor {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("favorites") || args[0].equalsIgnoreCase("fav")) {
+            shop.openFavorites(player, 0);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("search")) {
+            String query = args.length >= 2 ? String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length)) : "";
+            shop.openSearch(player, query, 0);
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("help")) {
             player.sendMessage("§b/shop §7- buka shop");
             player.sendMessage("§b/shop <kategori> §7- buka kategori");
             player.sendMessage("§b/shop sell §7- buka Sell GUI");
+            player.sendMessage("§b/shop search <kata> §7- cari item");
+            player.sendMessage("§b/shop favorites §7- buka favorit");
             return true;
         }
 
