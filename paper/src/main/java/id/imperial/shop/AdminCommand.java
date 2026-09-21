@@ -35,7 +35,7 @@ public final class AdminCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("info")) {
-            sender.sendMessage("§bImperialShop §f2.0.0");
+            sender.sendMessage("§bImperialShop §f2.1.0");
             sender.sendMessage("§7Harga terdaftar: §f" + shop.prices.size());
             sender.sendMessage("§7Kategori: §f" + shop.categories.size());
             sender.sendMessage("§7Platform: §fPaper/Purpur 1.21.x");
@@ -55,6 +55,10 @@ public final class AdminCommand implements CommandExecutor {
 
                 if (!Double.isFinite(buy) || !Double.isFinite(sell) || buy < 0 || sell < 0) {
                     sender.sendMessage("§cHarga harus angka >= 0.");
+                    return true;
+                }
+                if (sell > buy) {
+                    sender.sendMessage("§cHarga SELL tidak boleh lebih besar dari BUY.");
                     return true;
                 }
 
