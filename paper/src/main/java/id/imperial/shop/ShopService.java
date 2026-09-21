@@ -80,9 +80,11 @@ public final class ShopService {
                 if (material == null) continue;
                 double buy = priceSection.getDouble(key + ".buy", -1);
                 double sell = priceSection.getDouble(key + ".sell", -1);
-                int maxBuy = Math.max(1, priceSection.getInt(key + ".max-buy", quantityMax()));
-                int maxSell = Math.max(1, priceSection.getInt(key + ".max-sell", quantityMax()));
-                prices.put(material, new Price(buy, sell, maxBuy, maxSell));
+                int minBuy = Math.max(1, priceSection.getInt(key + ".min-buy", 1));
+                int minSell = Math.max(1, priceSection.getInt(key + ".min-sell", 1));
+                int maxBuy = Math.max(minBuy, priceSection.getInt(key + ".max-buy", quantityMax()));
+                int maxSell = Math.max(minSell, priceSection.getInt(key + ".max-sell", quantityMax()));
+                prices.put(material, new Price(buy, sell, minBuy, minSell, maxBuy, maxSell));
             }
         }
 
@@ -338,12 +340,14 @@ public final class ShopService {
             List<String> lore = new ArrayList<>();
             if (price != null && price.buy() >= 0) {
                 lore.add(color("&7Beli: &eRp " + money(buyPrice(player, material)) + " &8(1x)"));
+                lore.add(color("&7Limit beli: &f" + price.minBuy() + "–" + price.maxBuy()));
                 lore.add(color("&7Shift+Click: &e64x"));
             } else {
                 lore.add(color("&cTidak dapat dibeli"));
             }
             if (price != null && price.sell() >= 0) {
                 lore.add(color("&7Jual: &aRp " + money(sellPrice(player, material)) + " &8(1x)"));
+                lore.add(color("&7Limit jual: &f" + price.minSell() + "–" + price.maxSell()));
                 lore.add(color("&7Shift+Klik kanan: &aJual semua"));
             } else {
                 lore.add(color("&cTidak dapat dijual"));
@@ -462,8 +466,12 @@ public final class ShopService {
             message(player, "no-permission");
             return;
         }
-        int max = Math.min(quantityMax(), Math.max(
-                prices.get(material).maxBuy(), prices.get(material).maxSell()));
+        Price price = prices.get(material);
+        if (price == null) {
+            message(player, "no-permission");
+            return;
+        }
+        int max = Math.min(quantityMax(), Math.max(price.maxBuy(), price.maxSell()));
         quantities.put(player.getUniqueId(), new QuantitySession(categoryId, material, 1, max));
         renderQuantity(player);
     }
@@ -488,7 +496,8 @@ public final class ShopService {
                 List.of(
                         color("&7Beli: &eRp " + (buy >= 0 ? money(buy * amount) : "-")),
                         color("&7Jual: &aRp " + (sell >= 0 ? money(sell * amount) : "-")),
-                        color("&7Maksimum: &f" + session.max())
+                        color("&7Rentang beli: &f" + price.minBuy() + "–" + price.maxBuy()),
+                        color("&7Rentang jual: &f" + price.minSell() + "–" + price.maxSell())
                 ), "none", null));
         inventory.setItem(15, icon(Material.GLOWSTONE_DUST, color("&a+1"), List.of(), "qty:+1", null));
         inventory.setItem(16, icon(Material.GLOWSTONE, color("&a+16"), List.of(), "qty:+16", null));
@@ -616,7 +625,16 @@ public final class ShopService {
 
         int amount = requested;
         if (!ignoreMaxSell) {
-            amount = Math.min(amount, price.maxSell());
+            if (amount < price.minSell()) {
+                message(player, "below-min-sell", Map.of("%amount%", String.valueOf(price.minSell())));
+                sound(player, "fail");
+                return 0;
+            }
+            if (amount > price.maxSell()) {
+                message(player, "above-max-sell", Map.of("%amount%", String.valueOf(price.maxSell())));
+                sound(player, "fail");
+                return 0;
+            }
         }
         amount = Math.min(amount, count(player, material));
         if (amount < 1) return 0;
@@ -890,7 +908,7 @@ public final class ShopService {
         }
     }
 
-    record Price(double buy, double sell, int maxBuy, int maxSell) {}
+    record Price(double buy, double sell, int minBuy, int minSell, int maxBuy, int maxSell) {}
     record Category(String id, String name, Material icon, String permission, List<Material> items) {}
     record QuantitySession(String categoryId, Material material, int amount, int max) {}
     record SlotBackup(int slot, ItemStack stack) {}
