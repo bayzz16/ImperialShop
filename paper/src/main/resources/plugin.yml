@@ -9,7 +9,7 @@ depend: [Vault]
 commands:
   shop:
     description: Open ImperialShop or a specific category.
-    usage: /shop [category|sell|help]
+    usage: /shop [category|sell|search|favorites|help]
     permission: imperialshop.use
   sell:
     description: Open the ImperialShop Sell GUI.
