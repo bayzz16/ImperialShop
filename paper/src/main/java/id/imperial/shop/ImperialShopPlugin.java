@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class ImperialShopPlugin extends JavaPlugin {
     private Economy economy;
     private ShopService shop;
+    private TransactionHistory history;
 
     @Override
     public void onEnable() {
@@ -22,6 +23,7 @@ public final class ImperialShopPlugin extends JavaPlugin {
         }
 
         economy = registration.getProvider();
+        history = new TransactionHistory(this);
         shop = new ShopService(this, economy);
 
         if (getCommand("shop") != null) getCommand("shop").setExecutor(new ShopCommand(shop));
@@ -37,8 +39,17 @@ public final class ImperialShopPlugin extends JavaPlugin {
         getLogger().info("ImperialShop 2.1.0 enabled for Paper/Purpur 1.21.x.");
     }
 
+    TransactionHistory history() {
+        return history;
+    }
+
     public void reloadPlugin() {
         reloadConfig();
         if (shop != null) shop.reload();
+    }
+
+    @Override
+    public void onDisable() {
+        if (history != null) history.shutdown();
     }
 }
