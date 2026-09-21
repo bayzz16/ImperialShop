@@ -1,3 +1,7 @@
+network:
+  # Must match the Velocity bridge. Prefer the IMPERIALSHOP_NETWORK_SECRET environment variable in production.
+  shared-secret: "CHANGE-ME"
+
 settings:
   currency-symbol: "Rp"
   locale: "id-ID"
