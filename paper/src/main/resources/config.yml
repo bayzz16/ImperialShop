@@ -23,6 +23,7 @@ messages:
   inventory-full: "&cInventory penuh atau tidak memiliki ruang cukup."
   bought: "&aBerhasil membeli &f%amount%x %item% &adengan harga &f%price%&a."
   sold: "&aBerhasil menjual &f%amount%x %item% &adengan hasil &f%price%&a."
+  sold-gui: "&aItem di SellGUI berhasil dijual dengan hasil &f%price%&a."
   nothing-to-sell: "&cTidak ada item yang dapat dijual."
   reloaded: "&aImperialShop berhasil di-reload."
 
