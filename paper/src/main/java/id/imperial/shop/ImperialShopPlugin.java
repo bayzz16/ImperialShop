@@ -26,6 +26,7 @@ public final class ImperialShopPlugin extends JavaPlugin {
 
         if (getCommand("shop") != null) getCommand("shop").setExecutor(new ShopCommand(shop));
         if (getCommand("sell") != null) getCommand("sell").setExecutor(new SellCommand(shop));
+        if (getCommand("sellgui") != null) getCommand("sellgui").setExecutor(new SellCommand(shop));
         if (getCommand("sellall") != null) getCommand("sellall").setExecutor(new SellAllCommand(shop));
         if (getCommand("sellhand") != null) getCommand("sellhand").setExecutor(new SellHandCommand(shop));
         if (getCommand("imperialshop") != null) {
