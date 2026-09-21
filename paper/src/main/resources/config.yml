@@ -13,7 +13,8 @@ gui:
   main-title: "&b&lIMPERIAL SHOP"
   category-title: "&b&lSHOP &8» &f%category%"
   quantity-title: "&b&lTRANSAKSI &8» &f%item%"
-  sell-title: "&a&lSELL GUI"
+  sell-title: "&a&lSELL LIST"
+  sell-input-title: "&a&lIMPERIAL SELL GUI"
 
 messages:
   no-permission: "&cKamu tidak memiliki izin untuk shop/item ini."
