@@ -1,7 +1,11 @@
 backend-server: "survival"
+
 commands:
   shop: true
   sell: true
+  sellall: true
+  sellhand: true
+
 messages:
-  forwarded: "&aMembuka ImperialShop di server utama..."
-  unavailable: "&cServer shop sedang tidak tersedia."
+  forwarded: "Membuka ImperialShop di server utama..."
+  unavailable: "Server shop sedang tidak tersedia."
