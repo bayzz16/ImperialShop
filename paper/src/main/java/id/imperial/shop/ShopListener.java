@@ -98,6 +98,16 @@ public final class ShopListener implements Listener {
             return;
         }
 
+        if (action.equals("search")) {
+            player.sendMessage("§bGunakan: §f/shop search <kata>");
+            return;
+        }
+
+        if (action.equals("favorites")) {
+            later(player, () -> shop.openFavorites(player, 0));
+            return;
+        }
+
         if (action.equals("sellgui")) {
             if (shop.canSellGui(player)) {
                 later(player, () -> shop.openSellGui(player));
