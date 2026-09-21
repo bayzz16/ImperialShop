@@ -161,7 +161,9 @@ public final class ShopService {
     }
 
     boolean canSellGui(Player player) {
-        return player.hasPermission("imperialshop.sellgui.all");
+        if (player.hasPermission("imperialshop.sellgui.all")) return true;
+        return categories.values().stream()
+                .anyMatch(category -> player.hasPermission("imperialshop.sellgui." + category.id()));
     }
 
     boolean canSellAllCategory(Player player, Category category) {
@@ -183,7 +185,9 @@ public final class ShopService {
     }
 
     boolean canSellGuiItem(Player player, Category category, Material material) {
-        return canSellGui(player) && canTrade(player, category, material);
+        boolean sectionPermission = player.hasPermission("imperialshop.sellgui.all")
+                || player.hasPermission("imperialshop.sellgui." + category.id());
+        return sectionPermission && canTrade(player, category, material);
     }
 
     Category categoryFor(Material material) {
