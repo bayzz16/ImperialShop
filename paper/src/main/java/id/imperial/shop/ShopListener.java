@@ -40,7 +40,6 @@ public final class ShopListener implements Listener {
                 event.setCancelled(true);
                 if ("sellinput:all".equals(action)) {
                     shop.sellInput(player);
-                    shop.openSellGui(player);
                     return;
                 }
                 if ("sellgui:list".equals(action)) {
