@@ -35,13 +35,13 @@ public final class TransactionHistory {
             List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
             for (int i = 1; i < lines.size(); i++) {
                 String[] p = lines.get(i).split(",", -1);
-                if (p.length != 6) continue;
+                if (p.length != 7) continue;
                 try {
                     UUID uuid = UUID.fromString(p[1]);
-                    int amount = Integer.parseInt(p[4]);
-                    double total = Double.parseDouble(p[5]);
+                    int amount = Integer.parseInt(p[5]);
+                    double total = Double.parseDouble(p[6]);
                     addStats(uuid, amount, total);
-                    addRecent(new Record(p[0], uuid, p[2], p[3], p[3].equals("BUY") ? p[3] : p[3], amount, total));
+                    addRecent(new Record(p[0], uuid, p[2], p[3], p[4], amount, total));
                 } catch (RuntimeException ignored) {
                 }
             }
