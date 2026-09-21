@@ -1,0 +1,1 @@
+Velocity module is a bridge only. Inventory GUI and Vault economy remain on the Paper/Purpur backend server. Configure backend-server in config.yml to match the Velocity server name.
