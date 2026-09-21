@@ -22,7 +22,7 @@ public final class SellCommand implements CommandExecutor {
             player.sendMessage("§cTidak memiliki izin.");
             return true;
         }
-        shop.openSell(player);
+        shop.openSellGui(player);
         return true;
     }
 }
