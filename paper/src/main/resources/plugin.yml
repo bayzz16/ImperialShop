@@ -1,0 +1,26 @@
+name: ImperialShop
+version: 1.0.0
+main: id.imperial.shop.ImperialShopPlugin
+api-version: '1.21'
+author: Imperial X SOL
+description: Complete Shop and Sell GUI with Indonesian-style economy.
+depend: [Vault]
+commands:
+  shop:
+    description: Open the Imperial Shop.
+    usage: /shop
+  sell:
+    description: Open the Sell GUI.
+    usage: /sell
+  sellall:
+    description: Sell all sellable items in your inventory.
+    usage: /sellall
+  imperialshop:
+    description: ImperialShop administration.
+    aliases: [ishop]
+    usage: /imperialshop reload
+permissions:
+  imperialshop.use:
+    default: true
+  imperialshop.admin:
+    default: op
