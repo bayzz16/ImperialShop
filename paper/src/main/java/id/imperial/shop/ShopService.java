@@ -216,7 +216,7 @@ public final class ShopService {
                     ), "category", category.id()));
         }
 
-        inventory.setItem(45, nav(Material.ARROW, "&eHalaman Sebelumnya", "page:-1", page > 0));
+        inventory.setItem(45, nav(Material.ARROW, "&eHalaman Sebelumnya", "mainpage:" + (page - 1), page > 0));
         inventory.setItem(47, icon(Material.GOLD_INGOT,
                 color("&6&lSaldo"),
                 List.of(color("&7Saldo: &eRp " + money(economy.getBalance(player)))),
@@ -224,7 +224,7 @@ public final class ShopService {
         inventory.setItem(49, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
         inventory.setItem(51, icon(Material.HOPPER, color("&a&lJual Item"),
                 List.of(color("&7Buka Sell GUI")), "sellgui", null));
-        inventory.setItem(53, nav(Material.ARROW, "&aHalaman Berikutnya", "page:+1", page < pages - 1));
+        inventory.setItem(53, nav(Material.ARROW, "&aHalaman Berikutnya", "mainpage:" + (page + 1), page < pages - 1));
         decorate(inventory);
         // Re-apply navigation after filler.
         inventory.setItem(45, nav(Material.ARROW, "&eHalaman Sebelumnya", "page:-1", page > 0));
@@ -429,6 +429,10 @@ public final class ShopService {
     int selectedQuantity(Player player) {
         QuantitySession session = quantities.get(player.getUniqueId());
         return session == null ? 1 : session.amount();
+    }
+
+    QuantitySession quantitySession(Player player) {
+        return quantities.get(player.getUniqueId());
     }
 
     void clearQuantity(Player player) {
