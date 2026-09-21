@@ -1,6 +1,5 @@
 package id.imperial.shop;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,17 +23,19 @@ public final class ShopListener implements Listener {
     public void onClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        String title = ChatColor.stripColor(event.getView().getTitle());
         Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof ShopService.ShopHolder holder)) return;
 
-        if (title.contains("IMPERIAL SELL GUI")) {
-            if (event.getClickedInventory() == top) {
-                int rawSlot = event.getRawSlot();
+        if (holder.type() == ShopService.GuiType.SELL_INPUT) {
+            int rawSlot = event.getRawSlot();
 
-                // The first 45 slots are real player input slots.
-                if (rawSlot >= 0 && rawSlot < 45) return;
+            // Slots 0-44 are real SellGUI input slots. They must behave like a normal inventory.
+            if (rawSlot >= 0 && rawSlot < 45) return;
 
+            // Control bar is protected.
+            if (rawSlot >= 45 && rawSlot < top.getSize()) {
                 event.setCancelled(true);
+
                 ItemStack clicked = event.getCurrentItem();
                 if (clicked == null || !clicked.hasItemMeta()) return;
 
@@ -72,15 +73,13 @@ public final class ShopListener implements Listener {
                     });
                 }
             }
-            // Bottom inventory remains interactive so players can move items into the input area.
+            // Bottom inventory remains interactive for shift-clicking items into the input area.
             return;
         }
 
-        if (!isShopGui(title)) return;
-
         event.setCancelled(true);
-        if (event.getClickedInventory() != top) return;
 
+        ShopService.GuiType type = holder.type();
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || !clicked.hasItemMeta()) return;
 
@@ -227,14 +226,12 @@ public final class ShopListener implements Listener {
 
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
-        String title = ChatColor.stripColor(event.getView().getTitle());
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof ShopService.ShopHolder holder)) return;
 
-        if (title.contains("IMPERIAL SELL GUI")) {
-            int topSize = event.getView().getTopInventory().getSize();
-
-            // Protect controls, but allow dragging into the 45 input slots.
+        if (holder.type() == ShopService.GuiType.SELL_INPUT) {
             for (int rawSlot : event.getRawSlots()) {
-                if (rawSlot >= 45 && rawSlot < topSize) {
+                if (rawSlot >= 45 && rawSlot < top.getSize()) {
                     event.setCancelled(true);
                     return;
                 }
@@ -242,33 +239,25 @@ public final class ShopListener implements Listener {
             return;
         }
 
-        if (isShopGui(title)) {
-            event.setCancelled(true);
-        }
+        event.setCancelled(true);
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (!(event.getPlayer() instanceof Player player)) return;
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof ShopService.ShopHolder holder)) return;
 
-        String title = ChatColor.stripColor(event.getView().getTitle());
-        if (title.contains("TRANSAKSI »")) {
-            shop.clearQuantity(player);
-        }
-        if (title.contains("IMPERIAL SELL GUI")) {
-            shop.returnSellInput(player);
+        if (event.getPlayer() instanceof Player player) {
+            if (holder.type() == ShopService.GuiType.QUANTITY) {
+                shop.clearQuantity(player);
+            }
+            if (holder.type() == ShopService.GuiType.SELL_INPUT) {
+                shop.returnSellInput(player);
+            }
         }
     }
 
     private void later(Player player, Runnable task) {
         shop.plugin.getServer().getScheduler().runTask(shop.plugin, task);
-    }
-
-    private boolean isShopGui(String title) {
-        return title.contains("IMPERIAL SHOP")
-                || title.contains("SHOP »")
-                || title.contains("TRANSAKSI »")
-                || title.contains("SELL GUI")
-                || title.contains("SELL LIST");
     }
 }
