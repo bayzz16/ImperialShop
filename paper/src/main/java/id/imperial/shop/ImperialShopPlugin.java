@@ -3,11 +3,14 @@ package id.imperial.shop;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Material;
+import org.bukkit.ChatColor;
 
 public final class ImperialShopPlugin extends JavaPlugin {
     private Economy economy;
     private ShopService shop;
     private TransactionHistory history;
+    private FavoritesStore favorites;
 
     @Override
     public void onEnable() {
@@ -24,6 +27,7 @@ public final class ImperialShopPlugin extends JavaPlugin {
 
         economy = registration.getProvider();
         history = new TransactionHistory(this);
+        favorites = new FavoritesStore(this);
         shop = new ShopService(this, economy);
 
         if (getCommand("shop") != null) getCommand("shop").setExecutor(new ShopCommand(shop));
@@ -43,6 +47,18 @@ public final class ImperialShopPlugin extends JavaPlugin {
         return history;
     }
 
+    FavoritesStore favorites() {
+        return favorites;
+    }
+
+    boolean isConfiguredMaterial(Material material) {
+        return shop != null && shop.prices.containsKey(material);
+    }
+
+    String displayNameForSort(Material material) {
+        return shop == null ? material.name() : ChatColor.stripColor(shop.pretty(material));
+    }
+
     public void reloadPlugin() {
         reloadConfig();
         if (shop != null) shop.reload();
@@ -51,5 +67,6 @@ public final class ImperialShopPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (history != null) history.shutdown();
+        if (favorites != null) favorites.shutdown();
     }
 }
