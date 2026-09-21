@@ -24,44 +24,6 @@ public final class ShopListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
         String title = ChatColor.stripColor(event.getView().getTitle());
-        if (title.contains("IMPERIAL SELL GUI")) {
-            if (event.getClickedInventory() == event.getView().getTopInventory()) {
-                ItemStack clicked = event.getCurrentItem();
-                var data = clicked != null && clicked.hasItemMeta()
-                        ? clicked.getItemMeta().getPersistentDataContainer()
-                        : null;
-                String action = data == null ? null : data.get(shop.actionKey, PersistentDataType.STRING);
-
-                if (event.getSlot() < 45) {
-                    // Input slots are intentionally interactive.
-                    return;
-                }
-
-                event.setCancelled(true);
-                if ("sellinput:all".equals(action)) {
-                    shop.sellInput(player);
-                    return;
-                }
-                if ("sellgui:list".equals(action)) {
-                    shop.openSell(player);
-                    return;
-                }
-                if ("close".equals(action)) {
-                    shop.returnSellInput(player);
-                    player.closeInventory();
-                    return;
-                }
-                if ("shop".equals(action)) {
-                    shop.returnSellInput(player);
-                    shop.openShop(player);
-                    return;
-                }
-            } else {
-                // Prevent taking items from the player's inventory while the sell GUI is open.
-                event.setCancelled(true);
-            }
-            return;
-        }
         if (!isShopGui(title)) return;
 
         event.setCancelled(true);
@@ -91,7 +53,7 @@ public final class ShopListener implements Listener {
 
         if (action.equals("sellgui")) {
             shop.clearQuantity(player);
-            shop.openSellGui(player);
+            shop.openSell(player);
             return;
         }
 
@@ -229,7 +191,6 @@ public final class ShopListener implements Listener {
         if (event.getPlayer() instanceof Player player) {
             String title = ChatColor.stripColor(event.getView().getTitle());
             if (title.contains("TRANSAKSI »")) shop.clearQuantity(player);
-            if (title.contains("IMPERIAL SELL GUI")) shop.returnSellInput(player);
         }
     }
 }
