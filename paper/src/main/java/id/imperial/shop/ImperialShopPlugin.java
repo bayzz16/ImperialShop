@@ -16,6 +16,9 @@ public final class ImperialShopPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
 
+        getServer().getMessenger().registerIncomingPluginChannel(
+                this, VelocityBridgeListener.CHANNEL, new VelocityBridgeListener(this));
+
         RegisteredServiceProvider<Economy> registration =
                 getServer().getServicesManager().getRegistration(Economy.class);
 
@@ -43,13 +46,15 @@ public final class ImperialShopPlugin extends JavaPlugin {
         getLogger().info("ImperialShop 2.1.0 enabled for Paper/Purpur 1.21.x.");
     }
 
-    TransactionHistory history() {
-        return history;
+    String networkSecret() {
+        String configured = getConfig().getString("network.shared-secret", "");
+        String environment = System.getenv("IMPERIALSHOP_NETWORK_SECRET");
+        if (environment != null && !environment.isBlank()) return environment;
+        return configured == null ? "" : configured;
     }
 
-    FavoritesStore favorites() {
-        return favorites;
-    }
+    TransactionHistory history() { return history; }
+    FavoritesStore favorites() { return favorites; }
 
     boolean isConfiguredMaterial(Material material) {
         return shop != null && shop.prices.containsKey(material);
@@ -66,6 +71,7 @@ public final class ImperialShopPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        getServer().getMessenger().unregisterIncomingPluginChannel(this, VelocityBridgeListener.CHANNEL);
         if (history != null) history.shutdown();
         if (favorites != null) favorites.shutdown();
     }
