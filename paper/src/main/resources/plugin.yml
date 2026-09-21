@@ -14,7 +14,10 @@ commands:
   sell:
     description: Open the ImperialShop Sell GUI.
     usage: /sell
-    aliases: [sellgui]
+    permission: imperialshop.use
+  sellgui:
+    description: Open the dedicated item-input Sell GUI.
+    usage: /sellgui
     permission: imperialshop.use
   sellall:
     description: Sell all sellable inventory items, a material, or the item in hand.
@@ -40,3 +43,15 @@ permissions:
   imperialshop.admin:
     description: Manage ImperialShop.
     default: op
+  imperialshop.sellgui.all:
+    description: Allows selling configured items through /sellgui.
+    default: true
+  imperialshop.sellall.all:
+    description: Allows selling all configured inventory items.
+    default: true
+  imperialshop.sellallitem.all:
+    description: Allows /sellall <material>.
+    default: true
+  imperialshop.sellallhand.all:
+    description: Allows /sellall hand.
+    default: true
