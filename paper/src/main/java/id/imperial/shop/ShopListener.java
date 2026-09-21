@@ -156,18 +156,22 @@ public final class ShopListener implements Listener {
         }
 
         if (action.equals("resultitem") && itemData != null) {
-            String[] parts = itemData.split("\\|", 2);
-            if (parts.length != 2) return;
-            Material material = Material.matchMaterial(parts[1]);
+            String[] parts = itemData.split("\\|", 3);
+            if (parts.length != 3) return;
+            String source = parts[0];
+            Material material = Material.matchMaterial(parts[2]);
             if (material == null) return;
-            ShopService.Category category = shop.categories.get(parts[0]);
+            ShopService.Category category = shop.categories.get(parts[1]);
             if (category == null || !shop.canTrade(player, category, material)) return;
 
             ClickType click = event.getClick();
             if (click == ClickType.SHIFT_LEFT) {
                 boolean added = shop.plugin.favorites().toggle(player, material);
                 player.sendMessage(added ? "§d★ Ditambahkan ke favorit." : "§7☆ Dihapus dari favorit.");
-                later(player, () -> shop.openSearch(player, "", 0));
+                later(player, () -> {
+                    if (source.equals("favorites")) shop.openFavorites(player, 0);
+                    else if (source.startsWith("search:")) shop.openSearch(player, source.substring("search:".length()), 0);
+                });
             } else if (click == ClickType.MIDDLE) {
                 later(player, () -> shop.openQuantity(player, parts[0], material));
             } else if (click == ClickType.LEFT) {
