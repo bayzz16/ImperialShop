@@ -25,6 +25,7 @@ public final class ShopService {
     final Map<String, Category> categories = new LinkedHashMap<>();
     private final Map<UUID, QuantitySession> quantities = new HashMap<>();
     private final Map<UUID, Inventory> sellInputs = new HashMap<>();
+    private final Map<UUID, Long> transactionCooldowns = new HashMap<>();
 
     enum GuiType {
         MAIN, CATEGORY, QUANTITY, SELL_LIST, SELL_INPUT
@@ -541,6 +542,25 @@ public final class ShopService {
         quantities.remove(player.getUniqueId());
     }
 
+    private long transactionCooldownMillis() {
+        return Math.max(0L, plugin.getConfig().getLong("settings.transaction-cooldown-ms", 250L));
+    }
+
+    private boolean tryTransaction(Player player) {
+        long cooldown = transactionCooldownMillis();
+        if (cooldown <= 0) return true;
+
+        long now = System.currentTimeMillis();
+        long last = transactionCooldowns.getOrDefault(player.getUniqueId(), 0L);
+        if (now - last < cooldown) {
+            sound(player, "fail");
+            return false;
+        }
+
+        transactionCooldowns.put(player.getUniqueId(), now);
+        return true;
+    }
+
     boolean buy(Player player, Material material, int amount) {
         Category category = categoryFor(material);
         Price price = prices.get(material);
@@ -549,6 +569,7 @@ public final class ShopService {
             return false;
         }
         amount = Math.min(amount, price.maxBuy());
+        if (!tryTransaction(player)) return false;
         double unit = buyPrice(player, material);
         double total = unit * amount;
         if (!Double.isFinite(total) || total < 0) return false;
@@ -599,6 +620,7 @@ public final class ShopService {
         }
         amount = Math.min(amount, count(player, material));
         if (amount < 1) return 0;
+        if (!tryTransaction(player)) return 0;
 
         double total = sellPrice(player, material) * amount;
         if (!Double.isFinite(total) || total < 0) return 0;
@@ -642,6 +664,7 @@ public final class ShopService {
         int amount = backup.getAmount();
         double total = sellPrice(player, material) * amount;
         if (amount < 1 || !Double.isFinite(total) || total < 0) return 0;
+        if (!tryTransaction(player)) return 0;
 
         player.getInventory().setItemInMainHand(null);
 
@@ -667,6 +690,7 @@ public final class ShopService {
 
         int amount = count(player, material);
         if (amount < 1) return 0;
+        if (!tryTransaction(player)) return 0;
 
         double total = sellPrice(player, material) * amount;
         if (!Double.isFinite(total) || total < 0) return 0;
@@ -712,6 +736,7 @@ public final class ShopService {
         }
 
         if (sold.isEmpty() || total <= 0) return 0;
+        if (!tryTransaction(player)) return 0;
 
         for (SlotBackup backup : sold) {
             input.setItem(backup.slot(), null);
@@ -772,6 +797,12 @@ public final class ShopService {
         }
 
         if (backups.isEmpty() || total <= 0) {
+            for (SlotBackup backup : backups) {
+                player.getInventory().setItem(backup.slot(), backup.stack());
+            }
+            return 0;
+        }
+        if (!tryTransaction(player)) {
             for (SlotBackup backup : backups) {
                 player.getInventory().setItem(backup.slot(), backup.stack());
             }
