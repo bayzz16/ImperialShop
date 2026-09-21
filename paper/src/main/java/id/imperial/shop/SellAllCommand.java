@@ -1,24 +1,33 @@
 package id.imperial.shop;
 
-import org.bukkit.command.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public final class SellAllCommand implements CommandExecutor {
-    final ShopService s;
-    SellAllCommand(ShopService s) { this.s = s; }
+    private final ShopService shop;
+
+    SellAllCommand(ShopService shop) {
+        this.shop = shop;
+    }
 
     @Override
-    public boolean onCommand(CommandSender c, Command cmd, String label, String[] args) {
-        if (!(c instanceof Player p)) {
-            c.sendMessage("Player only.");
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("Player only.");
+            return true;
+        }
+        if (!player.hasPermission("imperialshop.use")) {
+            player.sendMessage("§cTidak memiliki izin.");
             return true;
         }
 
-        double total = s.sellContents(p);
+        double total = shop.sellContents(player);
         if (total > 0) {
-            p.sendMessage("§aBerhasil menjual inventory: §fRp " + s.money(total));
+            player.sendMessage("§aBerhasil menjual inventory: §fRp " + shop.money(total));
         } else {
-            p.sendMessage("§cTidak ada item yang dapat dijual atau transaksi gagal.");
+            player.sendMessage("§cTidak ada item yang dapat dijual atau transaksi gagal.");
         }
         return true;
     }
