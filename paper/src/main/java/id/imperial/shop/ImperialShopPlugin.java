@@ -12,30 +12,32 @@ public final class ImperialShopPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
 
-        RegisteredServiceProvider<Economy> rsp =
+        RegisteredServiceProvider<Economy> registration =
                 getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null || rsp.getProvider() == null) {
+
+        if (registration == null || registration.getProvider() == null) {
             getLogger().severe("Vault economy provider not found. ImperialShop disabled.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
-        economy = rsp.getProvider();
+        economy = registration.getProvider();
         shop = new ShopService(this, economy);
 
         if (getCommand("shop") != null) getCommand("shop").setExecutor(new ShopCommand(shop));
         if (getCommand("sell") != null) getCommand("sell").setExecutor(new SellCommand(shop));
         if (getCommand("sellall") != null) getCommand("sellall").setExecutor(new SellAllCommand(shop));
+        if (getCommand("sellhand") != null) getCommand("sellhand").setExecutor(new SellHandCommand(shop));
         if (getCommand("imperialshop") != null) {
             getCommand("imperialshop").setExecutor(new AdminCommand(this, shop));
         }
 
         getServer().getPluginManager().registerEvents(new ShopListener(shop), this);
-        getLogger().info("ImperialShop enabled for Paper/Purpur 1.21.x.");
+        getLogger().info("ImperialShop 2.0.0 enabled for Paper/Purpur 1.21.x.");
     }
 
     public void reloadPlugin() {
         reloadConfig();
-        shop.reload();
+        if (shop != null) shop.reload();
     }
 }
