@@ -608,6 +608,7 @@ public final class ShopService {
                 "%amount%", String.valueOf(amount),
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
+        plugin.history().record(player, "BUY", material, amount, total);
         sound(player, "buy");
         return true;
     }
@@ -666,6 +667,7 @@ public final class ShopService {
                 "%amount%", String.valueOf(amount),
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
+        plugin.history().record(player, "SELL", material, amount, total);
         sound(player, "sell");
         return total;
     }
@@ -708,6 +710,7 @@ public final class ShopService {
                 "%amount%", String.valueOf(amount),
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
+        plugin.history().record(player, "SELL", material, amount, total);
         sound(player, "sell");
         return total;
     }
@@ -736,6 +739,7 @@ public final class ShopService {
                 "%amount%", String.valueOf(amount),
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
+        plugin.history().record(player, "SELL", material, amount, total);
         sound(player, "sell");
         return total;
     }
