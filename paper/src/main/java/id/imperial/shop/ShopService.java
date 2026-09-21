@@ -122,6 +122,16 @@ public final class ShopService {
         return pageCapacity(itemCount) + 9;
     }
 
+    /** Centers shop entries horizontally on every content row. */
+    int centeredSlot(int index, int itemCount) {
+        if (itemCount <= 0) return 0;
+        int row = index / 9;
+        int column = index % 9;
+        int itemsInRow = Math.min(9, itemCount - row * 9);
+        int offset = Math.max(0, (9 - itemsInRow) / 2);
+        return row * 9 + offset + column;
+    }
+
     int quantityMax() {
         return Math.max(64, plugin.getConfig().getInt("settings.quantity-max", 2304));
     }
@@ -330,7 +340,7 @@ public final class ShopService {
             lore.add(color(plugin.favorites().isFavorite(player, material)
                     ? "&d★ &fFavorit" : "&8☆ &7Belum favorit"));
 
-            inventory.setItem(i - start, icon(material, color("&f&l" + pretty(material)), lore,
+            inventory.setItem(centeredSlot(i - start, end - start), icon(material, color("&f&l" + pretty(material)), lore,
                     "resultitem", backData + "|" + category.id() + "|" + material.name()));
         }
 
@@ -387,7 +397,7 @@ public final class ShopService {
         int end = Math.min(accessible.size(), start + capacity);
         for (int i = start; i < end; i++) {
             Category category = accessible.get(i);
-            int slot = i - start;
+            int slot = centeredSlot(i - start, end - start);
             inventory.setItem(slot, icon(category.icon(), category.name(),
                     List.of(
                             color("&8› &7Items &8• &f" + category.items().size()),
@@ -471,7 +481,7 @@ public final class ShopService {
             lore.add(color("&8• &7Shift kanan &fJual semua"));
             lore.add(color("&8• &7Tengah &fJumlah custom"));
 
-            inventory.setItem(i - start, icon(material, color("&f&l" + pretty(material)), lore,
+            inventory.setItem(centeredSlot(i - start, end - start), icon(material, color("&f&l" + pretty(material)), lore,
                     "item", category.id() + "|" + material.name()));
         }
 
@@ -998,66 +1008,3 @@ public final class ShopService {
         }
         return total;
     }
-
-    int space(Player player, Material material) {
-        int total = 0;
-        ItemStack template = new ItemStack(material);
-        for (ItemStack stack : player.getInventory().getStorageContents()) {
-            if (stack == null || stack.getType().isAir()) total += material.getMaxStackSize();
-            else if (stack.isSimilar(template)) total += material.getMaxStackSize() - stack.getAmount();
-        }
-        return total;
-    }
-
-    private boolean removeMaterial(Player player, Material material, int amount) {
-        int remaining = amount;
-        for (int slot = 0; slot < player.getInventory().getStorageContents().length && remaining > 0; slot++) {
-            ItemStack stack = player.getInventory().getItem(slot);
-            if (stack == null || stack.getType() != material) continue;
-            int take = Math.min(remaining, stack.getAmount());
-            if (take == stack.getAmount()) player.getInventory().setItem(slot, null);
-            else stack.setAmount(stack.getAmount() - take);
-            remaining -= take;
-        }
-        return remaining == 0;
-    }
-
-    private void addMaterialBack(Player player, Material material, int amount) {
-        Map<Integer, ItemStack> leftover = player.getInventory().addItem(new ItemStack(material, amount));
-        if (!leftover.isEmpty()) {
-            for (ItemStack stack : leftover.values()) {
-                player.getWorld().dropItemNaturally(player.getLocation(), stack);
-            }
-        }
-    }
-
-    private ItemStack nav(Material material, String name, String action, boolean enabled) {
-        return icon(material, color(enabled ? name : "&8" + ChatColor.stripColor(color(name))),
-                enabled ? List.of() : List.of(color("&7Tidak tersedia")), enabled ? action : "none", null);
-    }
-
-    private void message(Player player, String key) {
-        message(player, key, Collections.emptyMap());
-    }
-
-    private void message(Player player, String key, Map<String, String> replacements) {
-        String value = plugin.getConfig().getString("messages." + key, "");
-        for (var entry : replacements.entrySet()) value = value.replace(entry.getKey(), entry.getValue());
-        if (!value.isBlank()) player.sendMessage(color(value));
-    }
-
-    private void sound(Player player, String type) {
-        if (!plugin.getConfig().getBoolean("settings.sounds", true)) return;
-        String configured = plugin.getConfig().getString("sounds." + type, "");
-        if (configured.isBlank()) return;
-        try {
-            player.playSound(player.getLocation(), Sound.valueOf(configured.toUpperCase(Locale.ROOT)), 1f, 1f);
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    record Price(double buy, double sell, int minBuy, int minSell, int maxBuy, int maxSell) {}
-    record Category(String id, String name, Material icon, String permission, List<Material> items) {}
-    record QuantitySession(String categoryId, Material material, int amount, int max) {}
-    record SlotBackup(int slot, ItemStack stack) {}
-}
