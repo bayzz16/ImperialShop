@@ -24,6 +24,7 @@ public final class ShopService {
     final Map<Material, Price> prices = new EnumMap<>(Material.class);
     final Map<String, Category> categories = new LinkedHashMap<>();
     private final Map<UUID, QuantitySession> quantities = new HashMap<>();
+    private final Map<UUID, Inventory> sellInputs = new HashMap<>();
 
     ShopService(ImperialShopPlugin plugin, Economy economy) {
         this.plugin = plugin;
@@ -124,6 +125,32 @@ public final class ShopService {
         String itemPermission = plugin.getConfig().getString(
                 "item-permissions." + category.id() + "." + material.name(), "");
         return itemPermission.isBlank() || player.hasPermission(itemPermission);
+    }
+
+    boolean canSellGui(Player player) {
+        return player.hasPermission("imperialshop.sellgui.all");
+    }
+
+    boolean canSellAllCategory(Player player, Category category) {
+        return player.hasPermission("imperialshop.sellall.all")
+                || player.hasPermission("imperialshop.sellall." + category.id());
+    }
+
+    boolean canSellAllItem(Player player, Category category, Material material) {
+        if (!canSellAllCategory(player, category)) return false;
+        String permission = plugin.getConfig().getString(
+                "item-permissions." + category.id() + "." + material.name(), "");
+        return permission.isBlank() || player.hasPermission(permission);
+    }
+
+    boolean canSellHand(Player player, Category category, Material material) {
+        return (player.hasPermission("imperialshop.sellallhand.all")
+                || player.hasPermission("imperialshop.sellallhand." + category.id()))
+                && canTrade(player, category, material);
+    }
+
+    boolean canSellGuiItem(Player player, Category category, Material material) {
+        return canSellGui(player) && canTrade(player, category, material);
     }
 
     Category categoryFor(Material material) {
@@ -301,6 +328,37 @@ public final class ShopService {
                 List.of(color("&7Kategori: &f" + category.name())), "none", null));
         inventory.setItem(43, nav(Material.ARROW, "&eSebelumnya", "catpage:" + id + ":" + (page - 1), page > 0));
         inventory.setItem(53, nav(Material.ARROW, "&aBerikutnya", "catpage:" + id + ":" + (page + 1), page < pages - 1));
+        player.openInventory(inventory);
+    }
+
+    void openSellGui(Player player) {
+        returnSellInput(player);
+
+        Inventory inventory = Bukkit.createInventory(null, 54,
+                color(plugin.getConfig().getString("gui.sell-input-title", "&a&lIMPERIAL SELL GUI")));
+
+        for (int slot = 0; slot < 45; slot++) {
+            inventory.setItem(slot, null);
+        }
+
+        inventory.setItem(45, icon(Material.GOLD_INGOT, color("&a&lJUAL SEMUA"),
+                List.of(color("&7Jual semua item valid yang ada di sini.")),
+                "sellinput:all", null));
+        inventory.setItem(47, icon(Material.CHEST, color("&e&lLIHAT SELL LIST"),
+                List.of(color("&7Kembali ke daftar item yang bisa dijual.")),
+                "sellgui:list", null));
+        inventory.setItem(49, icon(Material.BARRIER, color("&cTUTUP"), List.of(),
+                "close", null));
+        inventory.setItem(51, icon(Material.ARROW, color("&eKEMBALI KE SHOP"), List.of(),
+                "shop", null));
+        inventory.setItem(53, icon(Material.PAPER, color("&f&lINFO"),
+                List.of(
+                        color("&7Taruh item yang ingin dijual"),
+                        color("&7di 45 slot bagian atas."),
+                        color("&7Item tidak terdaftar akan dikembalikan.")
+                ), "none", null));
+
+        sellInputs.put(player.getUniqueId(), inventory);
         player.openInventory(inventory);
     }
 
@@ -511,29 +569,117 @@ public final class ShopService {
     double sellHand(Player player) {
         ItemStack stack = player.getInventory().getItemInMainHand();
         if (stack == null || stack.getType().isAir()) return 0;
-        return sellMaterial(player, stack.getType(), stack.getAmount());
-    }
 
-    double sellAllMaterial(Player player, Material material) {
+        Material material = stack.getType();
         Category category = categoryFor(material);
-        Price price = prices.get(material);
-        if (category == null || price == null || price.sell() < 0 || !canTrade(player, category, material)) return 0;
-        int amount = count(player, material);
-        if (amount < 1) return 0;
+        if (category == null || !canSellHand(player, category, material)) return 0;
+
+        int amount = stack.getAmount();
         double total = sellPrice(player, material) * amount;
-        if (!Double.isFinite(total) || total < 0) return 0;
+        if (amount < 1 || !Double.isFinite(total) || total < 0) return 0;
         if (!removeMaterial(player, material, amount)) return 0;
+
         EconomyResponse response = economy.depositPlayer(player, total);
         if (!response.transactionSuccess()) {
             addMaterialBack(player, material, amount);
             return 0;
         }
+
         message(player, "sold", Map.of(
                 "%amount%", String.valueOf(amount),
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
         sound(player, "sell");
         return total;
+    }
+
+    double sellAllMaterial(Player player, Material material) {
+        Category category = categoryFor(material);
+        Price price = prices.get(material);
+        if (category == null || price == null || price.sell() < 0
+                || !canSellAllItem(player, category, material)) return 0;
+
+        int amount = count(player, material);
+        if (amount < 1) return 0;
+
+        double total = sellPrice(player, material) * amount;
+        if (!Double.isFinite(total) || total < 0) return 0;
+        if (!removeMaterial(player, material, amount)) return 0;
+
+        EconomyResponse response = economy.depositPlayer(player, total);
+        if (!response.transactionSuccess()) {
+            addMaterialBack(player, material, amount);
+            return 0;
+        }
+
+        message(player, "sold", Map.of(
+                "%amount%", String.valueOf(amount),
+                "%item%", pretty(material),
+                "%price%", "Rp " + money(total)));
+        sound(player, "sell");
+        return total;
+    }
+
+    double sellInput(Player player) {
+        Inventory input = sellInputs.get(player.getUniqueId());
+        if (input == null || !canSellGui(player)) return 0;
+
+        double total = 0;
+        List<SlotBackup> sold = new ArrayList<>();
+
+        for (int slot = 0; slot < 45; slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack == null || stack.getType().isAir()) continue;
+
+            Material material = stack.getType();
+            Category category = categoryFor(material);
+            Price price = prices.get(material);
+            if (category == null || price == null || price.sell() < 0
+                    || !canSellGuiItem(player, category, material)) continue;
+
+            int amount = stack.getAmount();
+            double value = sellPrice(player, material) * amount;
+            if (amount < 1 || !Double.isFinite(value) || value < 0) continue;
+
+            sold.add(new SlotBackup(slot, stack.clone()));
+            total += value;
+        }
+
+        if (sold.isEmpty() || total <= 0) return 0;
+
+        for (SlotBackup backup : sold) {
+            input.setItem(backup.slot(), null);
+        }
+
+        EconomyResponse response = economy.depositPlayer(player, total);
+        if (!response.transactionSuccess()) {
+            for (SlotBackup backup : sold) {
+                input.setItem(backup.slot(), backup.stack());
+            }
+            return 0;
+        }
+
+        message(player, "sold-gui", Map.of("%price%", "Rp " + money(total)));
+        sound(player, "sell");
+        return total;
+    }
+
+    void returnSellInput(Player player) {
+        Inventory input = sellInputs.remove(player.getUniqueId());
+        if (input == null) return;
+
+        for (int slot = 0; slot < 45; slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack == null || stack.getType().isAir()) continue;
+
+            Map<Integer, ItemStack> leftover = player.getInventory().addItem(stack);
+            if (!leftover.isEmpty()) {
+                for (ItemStack drop : leftover.values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                }
+            }
+            input.setItem(slot, null);
+        }
     }
 
     double sellContents(Player player) {
@@ -544,28 +690,33 @@ public final class ShopService {
             ItemStack stack = player.getInventory().getItem(slot);
             if (stack == null || stack.getType().isAir()) continue;
 
-            Category category = categoryFor(stack.getType());
-            Price price = prices.get(stack.getType());
-            if (category == null || price == null || price.sell() < 0 || !canTrade(player, category, stack.getType())) continue;
+            Material material = stack.getType();
+            Category category = categoryFor(material);
+            Price price = prices.get(material);
+            if (category == null || price == null || price.sell() < 0
+                    || !canSellAllItem(player, category, material)) continue;
 
-            int amount = Math.min(stack.getAmount(), price.maxSell());
-            if (amount < 1) continue;
+            int amount = stack.getAmount();
+            double value = sellPrice(player, material) * amount;
+            if (amount < 1 || !Double.isFinite(value) || value < 0) continue;
 
-            total += sellPrice(player, stack.getType()) * amount;
-            if (amount == stack.getAmount()) {
-                backups.add(new SlotBackup(slot, stack.clone()));
-                player.getInventory().setItem(slot, null);
-            } else {
-                backups.add(new SlotBackup(slot, stack.clone()));
-                stack.setAmount(stack.getAmount() - amount);
-            }
+            backups.add(new SlotBackup(slot, stack.clone()));
+            total += value;
+            player.getInventory().setItem(slot, null);
         }
 
-        if (backups.isEmpty() || total <= 0) return 0;
+        if (backups.isEmpty() || total <= 0) {
+            for (SlotBackup backup : backups) {
+                player.getInventory().setItem(backup.slot(), backup.stack());
+            }
+            return 0;
+        }
 
         EconomyResponse response = economy.depositPlayer(player, total);
         if (!response.transactionSuccess()) {
-            for (SlotBackup backup : backups) player.getInventory().setItem(backup.slot(), backup.stack());
+            for (SlotBackup backup : backups) {
+                player.getInventory().setItem(backup.slot(), backup.stack());
+            }
             return 0;
         }
 
