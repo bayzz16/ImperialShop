@@ -18,11 +18,34 @@ public final class ShopCommand implements CommandExecutor {
             sender.sendMessage("Player only.");
             return true;
         }
-        if (!player.hasPermission("imperialshop.use")) {
-            player.sendMessage("§cTidak memiliki izin.");
+        if (!shop.canUse(player)) {
+            player.sendMessage("§cKamu tidak memiliki izin.");
             return true;
         }
-        shop.openShop(player);
+
+        if (args.length == 0) {
+            shop.openShop(player);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("sell")) {
+            shop.openSell(player);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("help")) {
+            player.sendMessage("§b/shop §7- buka shop");
+            player.sendMessage("§b/shop <kategori> §7- buka kategori");
+            player.sendMessage("§b/shop sell §7- buka Sell GUI");
+            return true;
+        }
+
+        var category = shop.categories.get(args[0].toLowerCase());
+        if (category != null) {
+            shop.openCategory(player, category.id());
+        } else {
+            player.sendMessage("§cKategori tidak ditemukan.");
+        }
         return true;
     }
 }
