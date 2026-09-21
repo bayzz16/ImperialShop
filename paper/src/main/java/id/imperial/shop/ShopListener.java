@@ -143,12 +143,12 @@ public final class ShopListener implements Listener {
             String[] parts = action.split(":", 3);
             if (parts.length == 3) {
                 try {
-                    String data = new String(java.util.Base64.getDecoder().decode(parts[1]), java.nio.charset.StandardCharsets.UTF_8);
+                    String pageSource = new String(java.util.Base64.getDecoder().decode(parts[1]), java.nio.charset.StandardCharsets.UTF_8);
                     int targetPage = Integer.parseInt(parts[2]);
-                    if (data.equals("favorites")) {
+                    if (pageSource.equals("favorites")) {
                         later(player, () -> shop.openFavorites(player, targetPage));
-                    } else if (data.startsWith("search:")) {
-                        later(player, () -> shop.openSearch(player, data.substring("search:".length()), targetPage));
+                    } else if (pageSource.startsWith("search:")) {
+                        later(player, () -> shop.openSearch(player, pageSource.substring("search:".length()), targetPage));
                     }
                 } catch (IllegalArgumentException ignored) {
                 }
