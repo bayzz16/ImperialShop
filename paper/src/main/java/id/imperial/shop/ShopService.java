@@ -80,9 +80,8 @@ public final class ShopService {
     }
 
     int guiSize(String key) {
-        int size = plugin.getConfig().getInt("settings." + key, 54);
-        if (size != 27 && size != 36 && size != 45 && size != 54) size = 54;
-        return size;
+        if (key.equals("shop-size") || key.equals("sell-size")) return 54;
+        return 27;
     }
 
     String color(String value) {
@@ -115,9 +114,9 @@ public final class ShopService {
     }
 
     boolean canAccessCategory(Player player, Category category) {
+        if (player.hasPermission("imperialshop.shop.all")) return true;
         if (!category.permission().isBlank()) return player.hasPermission(category.permission());
-        return player.hasPermission("imperialshop.shop.all")
-                || player.hasPermission("imperialshop.shop." + category.id());
+        return player.hasPermission("imperialshop.shop." + category.id());
     }
 
     boolean canTrade(Player player, Category category, Material material) {
@@ -519,7 +518,7 @@ public final class ShopService {
         double total = 0;
         List<SlotBackup> backups = new ArrayList<>();
 
-        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+        for (int slot = 0; slot < player.getInventory().getStorageContents().length; slot++) {
             ItemStack stack = player.getInventory().getItem(slot);
             if (stack == null || stack.getType().isAir()) continue;
 
@@ -576,7 +575,7 @@ public final class ShopService {
 
     private boolean removeMaterial(Player player, Material material, int amount) {
         int remaining = amount;
-        for (int slot = 0; slot < player.getInventory().getSize() && remaining > 0; slot++) {
+        for (int slot = 0; slot < player.getInventory().getStorageContents().length && remaining > 0; slot++) {
             ItemStack stack = player.getInventory().getItem(slot);
             if (stack == null || stack.getType() != material) continue;
             int take = Math.min(remaining, stack.getAmount());
