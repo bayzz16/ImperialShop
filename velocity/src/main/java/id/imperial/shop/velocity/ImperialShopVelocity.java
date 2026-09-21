@@ -21,7 +21,7 @@ import java.util.Map;
 @Plugin(
         id = "imperialshop",
         name = "ImperialShop",
-        version = "2.0.0",
+        version = "2.1.0",
         authors = {"Imperial X SOL"},
         description = "ImperialShop proxy bridge for Velocity 3.x"
 )
@@ -48,6 +48,9 @@ public final class ImperialShopVelocity {
         if (Boolean.parseBoolean(config.getOrDefault("commands.sell", "true"))) {
             proxy.getCommandManager().register("sell", new ForwardCommand(this));
         }
+        if (Boolean.parseBoolean(config.getOrDefault("commands.sellgui", "true"))) {
+            proxy.getCommandManager().register("sellgui", new ForwardCommand(this));
+        }
         if (Boolean.parseBoolean(config.getOrDefault("commands.sellall", "true"))) {
             proxy.getCommandManager().register("sellall", new ForwardCommand(this));
         }
@@ -55,7 +58,7 @@ public final class ImperialShopVelocity {
             proxy.getCommandManager().register("sellhand", new ForwardCommand(this));
         }
 
-        logger.info("ImperialShop 2.0.0 Velocity bridge enabled.");
+        logger.info("ImperialShop 2.1.0 Velocity bridge enabled.");
     }
 
     private void loadConfig() {
@@ -69,6 +72,7 @@ backend-server: "survival"
 commands:
   shop: true
   sell: true
+  sellgui: true
   sellall: true
   sellhand: true
 messages:
