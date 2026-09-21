@@ -176,10 +176,10 @@ public final class ShopListener implements Listener {
                     later(player, () -> shop.openQuantity(player, category.id(), material));
                 }
             } else if (event.getClick() == ClickType.RIGHT) {
-                shop.sellMaterial(player, material, 1);
+                shop.sellGuiMaterial(player, material, 1);
                 later(player, () -> shop.openSell(player));
             } else {
-                shop.sellMaterial(player, material, Integer.MAX_VALUE);
+                shop.sellGuiAllMaterial(player, material);
                 later(player, () -> shop.openSell(player));
             }
             return;
