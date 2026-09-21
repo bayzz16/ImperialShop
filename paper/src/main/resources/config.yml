@@ -26,6 +26,10 @@ messages:
   bought: "&aBerhasil membeli &f%amount%x %item% &adengan harga &f%price%&a."
   sold: "&aBerhasil menjual &f%amount%x %item% &adengan hasil &f%price%&a."
   sold-gui: "&aItem di SellGUI berhasil dijual dengan hasil &f%price%&a."
+  below-min-buy: "&cMinimal pembelian item ini adalah &f%amount%x&c."
+  above-max-buy: "&cMaksimal pembelian item ini adalah &f%amount%x&c per transaksi."
+  below-min-sell: "&cMinimal penjualan item ini adalah &f%amount%x&c."
+  above-max-sell: "&cMaksimal penjualan item ini adalah &f%amount%x&c per transaksi."
   nothing-to-sell: "&cTidak ada item yang dapat dijual."
   reloaded: "&aImperialShop berhasil di-reload."
 
@@ -86,6 +90,12 @@ categories:
     name: "&6Farming & Misc"
     items: [HONEYCOMB, HONEY_BOTTLE, EGG, FEATHER, LEATHER, RABBIT_HIDE, INK_SAC, GLOW_INK_SAC]
 
+# Optional per-item transaction limits:
+# min-buy / min-sell default: 1
+# max-buy / max-sell default: settings.quantity-max
+# Contoh: STONE: {buy: 500, sell: 100, min-buy: 16, max-buy: 512, min-sell: 8, max-sell: 1024}
+# /sellall, /sellall hand, dan tombol "Jual Semua" memang merupakan bulk-sell
+# dan sengaja tidak dibatasi max-sell per transaksi.
 prices:
   STONE: {buy: 500, sell: 100}
   COBBLESTONE: {buy: 300, sell: 60}
