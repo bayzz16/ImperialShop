@@ -78,14 +78,7 @@ public final class ShopListener implements Listener {
 
         if (action.equals("buy:selected")) {
             Material m = Material.matchMaterial(itemName);
-            int amount = 1;
-            try {
-                var field = ShopService.class.getDeclaredField("quantities");
-                field.setAccessible(true);
-                @SuppressWarnings("unchecked")
-                var map = (java.util.Map<java.util.UUID, Integer>) field.get(s);
-                amount = map.getOrDefault(p.getUniqueId(), 1);
-            } catch (ReflectiveOperationException ignored) {}
+            int amount = s.selectedQuantity(p);
             if (s.buy(p, m, amount)) {
                 p.sendMessage("§aPembelian berhasil: §f" + amount + "x " + s.pretty(m));
             } else {
