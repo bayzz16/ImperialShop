@@ -1,26 +1,38 @@
 name: ImperialShop
-version: 1.0.0
+version: 2.0.0
 main: id.imperial.shop.ImperialShopPlugin
 api-version: '1.21'
 author: Imperial X SOL
-description: Complete Shop and Sell GUI with Indonesian-style economy.
+description: Complete Shop and Sell GUI for Paper and Purpur 1.21.x.
 depend: [Vault]
+
 commands:
   shop:
     description: Open the Imperial Shop.
     usage: /shop
+    permission: imperialshop.use
   sell:
     description: Open the Sell GUI.
     usage: /sell
+    permission: imperialshop.use
   sellall:
     description: Sell all sellable items in your inventory.
     usage: /sellall
+    permission: imperialshop.use
+  sellhand:
+    description: Sell the item in your main hand.
+    usage: /sellhand
+    permission: imperialshop.use
   imperialshop:
     description: ImperialShop administration.
     aliases: [ishop]
-    usage: /imperialshop reload
+    usage: /imperialshop <reload|price|info>
+    permission: imperialshop.admin
+
 permissions:
   imperialshop.use:
+    description: Use the ImperialShop GUI and sell commands.
     default: true
   imperialshop.admin:
+    description: Manage ImperialShop.
     default: op
