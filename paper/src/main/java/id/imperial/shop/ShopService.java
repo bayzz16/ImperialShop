@@ -624,19 +624,31 @@ public final class ShopService {
         if (!allowed) return 0;
 
         int amount = requested;
+        int available = count(player, material);
         if (!ignoreMaxSell) {
-            if (amount < price.minSell()) {
-                message(player, "below-min-sell", Map.of("%amount%", String.valueOf(price.minSell())));
-                sound(player, "fail");
-                return 0;
+            if (requested == Integer.MAX_VALUE) {
+                amount = Math.min(price.maxSell(), available);
+            } else {
+                if (amount < price.minSell()) {
+                    message(player, "below-min-sell", Map.of("%amount%", String.valueOf(price.minSell())));
+                    sound(player, "fail");
+                    return 0;
+                }
+                if (amount > price.maxSell()) {
+                    message(player, "above-max-sell", Map.of("%amount%", String.valueOf(price.maxSell())));
+                    sound(player, "fail");
+                    return 0;
+                }
+                amount = Math.min(amount, available);
             }
-            if (amount > price.maxSell()) {
-                message(player, "above-max-sell", Map.of("%amount%", String.valueOf(price.maxSell())));
-                sound(player, "fail");
-                return 0;
-            }
+        } else {
+            amount = available;
         }
-        amount = Math.min(amount, count(player, material));
+        if (amount < price.minSell() && !ignoreMaxSell) {
+            message(player, "below-min-sell", Map.of("%amount%", String.valueOf(price.minSell())));
+            sound(player, "fail");
+            return 0;
+        }
         if (amount < 1) return 0;
         if (!tryTransaction(player)) return 0;
 
