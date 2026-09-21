@@ -74,7 +74,8 @@ messages:
                 if(trimmed.isEmpty()||trimmed.startsWith("#")||!trimmed.contains(":")) continue;
                 int sep=trimmed.indexOf(':');
                 String key=trimmed.substring(0,sep).trim();
-                String value=trimmed.substring(sep+1).trim().replaceAll("^\\"|\\"$","");
+                String value=trimmed.substring(sep+1).trim();
+                if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) value=value.substring(1,value.length()-1);
                 if(line.startsWith("  ")){
                     String section=findSection(lines,i);
                     if(section!=null) config.put(section+"."+key,value);
