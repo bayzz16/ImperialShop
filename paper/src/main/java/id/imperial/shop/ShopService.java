@@ -315,7 +315,7 @@ public final class ShopService {
             lore.add(color("&fKlik tengah &7→ jumlah custom"));
             lore.add(color("&fShift kiri &7→ favorit/unfavorit"));
             inventory.setItem(i - start, icon(material, color("&f&l" + pretty(material)), lore,
-                    "resultitem", category.id() + "|" + material.name()));
+                    "resultitem", backData + "|" + category.id() + "|" + material.name()));
         }
 
         String encoded = Base64.getEncoder().encodeToString(backData.getBytes(java.nio.charset.StandardCharsets.UTF_8));
