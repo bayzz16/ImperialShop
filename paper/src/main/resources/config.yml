@@ -1,3 +1,14 @@
+economy:
+  # imperial = ImperialShop owns the Vault economy provider.
+  # external = use another plugin registered through Vault.
+  provider: "imperial"
+  currency-name-singular: "Rupiah"
+  currency-name-plural: "Rupiah"
+  storage:
+    # YAML is the default single-server storage.
+    # A shared SQL backend will be added through the economy storage API for multi-server networks.
+    autosave-ticks: 600
+
 network:
   # Must match the Velocity bridge. Prefer the IMPERIALSHOP_NETWORK_SECRET environment variable in production.
   shared-secret: "CHANGE-ME"
