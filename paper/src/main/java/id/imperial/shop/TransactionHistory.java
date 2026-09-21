@@ -8,6 +8,9 @@ import java.nio.file.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class TransactionHistory {
@@ -17,6 +20,11 @@ public final class TransactionHistory {
     private final Deque<Record> recent = new ArrayDeque<>();
     private final Map<UUID, Stats> stats = new ConcurrentHashMap<>();
     private final AtomicLong totalTransactions = new AtomicLong();
+    private final ExecutorService writer = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "ImperialShop-TransactionWriter");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     TransactionHistory(ImperialShopPlugin plugin) {
         this.plugin = plugin;
@@ -57,7 +65,7 @@ public final class TransactionHistory {
         addStats(record.uuid(), amount, total);
         addRecent(record);
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> append(record));
+        writer.execute(() -> append(record));
     }
 
     private synchronized void append(Record record) {
@@ -113,7 +121,15 @@ public final class TransactionHistory {
     }
 
     void shutdown() {
-        // Writes are scheduled individually; no persistent executor needs closing.
+        writer.shutdown();
+        try {
+            if (!writer.awaitTermination(5, TimeUnit.SECONDS)) {
+                writer.shutdownNow();
+            }
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            writer.shutdownNow();
+        }
     }
 
     static final class Stats {
