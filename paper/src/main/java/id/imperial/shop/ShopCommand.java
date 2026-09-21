@@ -1,0 +1,1 @@
+package id.imperial.shop; import org.bukkit.command.*;import org.bukkit.entity.Player;public final class ShopCommand implements CommandExecutor{final ShopService s;ShopCommand(ShopService s){this.s=s;}public boolean onCommand(CommandSender c,Command cmd,String l,String[] a){if(!(c instanceof Player p)){c.sendMessage("Player only.");return true;}s.openShop(p);return true;}}
