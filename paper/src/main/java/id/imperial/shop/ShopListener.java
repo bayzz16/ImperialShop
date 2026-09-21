@@ -3,117 +3,210 @@ package id.imperial.shop;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.*;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 public final class ShopListener implements Listener {
-    final ShopService s;
-    ShopListener(ShopService s) { this.s = s; }
+    private final ShopService shop;
+
+    ShopListener(ShopService shop) {
+        this.shop = shop;
+    }
 
     @EventHandler
-    public void click(InventoryClickEvent e) {
-        if (!(e.getWhoClicked() instanceof Player p)) return;
+    public void onClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        String title = ChatColor.stripColor(e.getView().getTitle());
-        boolean shopGui = title.contains("IMPERIAL SHOP") || title.contains("SHOP »")
-                || title.contains("BELI »") || title.contains("SELL GUI");
-        if (!shopGui) return;
+        String title = ChatColor.stripColor(event.getView().getTitle());
+        if (!isShopGui(title)) return;
 
-        e.setCancelled(true);
-        if (e.getClickedInventory() != e.getView().getTopInventory()) return;
+        event.setCancelled(true);
+        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
-        ItemStack item = e.getCurrentItem();
-        if (item == null || !item.hasItemMeta()) return;
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || !clicked.hasItemMeta()) return;
 
-        var pc = item.getItemMeta().getPersistentDataContainer();
-        String action = pc.get(s.actionKey, PersistentDataType.STRING);
-        String itemName = pc.get(s.itemKey, PersistentDataType.STRING);
+        var data = clicked.getItemMeta().getPersistentDataContainer();
+        String action = data.get(shop.actionKey, PersistentDataType.STRING);
+        String itemData = data.get(shop.itemKey, PersistentDataType.STRING);
         if (action == null) return;
 
+        if (action.equals("none")) return;
+
+        if (action.equals("close")) {
+            shop.clearQuantity(player);
+            player.closeInventory();
+            return;
+        }
+
+        if (action.equals("shop")) {
+            shop.clearQuantity(player);
+            shop.openShop(player);
+            return;
+        }
+
+        if (action.equals("sellgui")) {
+            shop.clearQuantity(player);
+            shop.openSell(player);
+            return;
+        }
+
+        if (action.equals("back")) {
+            shop.clearQuantity(player);
+            shop.openShop(player);
+            return;
+        }
+
+        if (action.equals("category") && itemData != null) {
+            shop.openCategory(player, itemData);
+            return;
+        }
+
+        if (action.startsWith("catpage:")) {
+            String[] parts = action.split(":", 3);
+            if (parts.length == 3) {
+                try {
+                    shop.openCategory(player, parts[1], Integer.parseInt(parts[2]));
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            return;
+        }
+
+        if (action.startsWith("page:")) {
+            try {
+                int delta = Integer.parseInt(action.substring(5));
+                int current = currentMainPage(title);
+                shop.openShop(player, Math.max(0, current + delta));
+            } catch (NumberFormatException ignored) {
+            }
+            return;
+        }
+
+        if (action.equals("item") && itemData != null) {
+            String[] parts = itemData.split("\\|", 2);
+            if (parts.length != 2) return;
+            Material material = Material.matchMaterial(parts[1]);
+            if (material == null) return;
+
+            ShopService.Category category = shop.categories.get(parts[0]);
+            if (category == null || !shop.canTrade(player, category, material)) {
+                player.sendMessage("§cKamu tidak memiliki akses ke item ini.");
+                return;
+            }
+
+            ClickType click = event.getClick();
+            if (click == ClickType.MIDDLE) {
+                shop.openQuantity(player, parts[0], material);
+            } else if (click == ClickType.LEFT) {
+                shop.buy(player, material, 1);
+            } else if (click == ClickType.RIGHT) {
+                shop.sellMaterial(player, material, 1);
+            } else if (click == ClickType.SHIFT_LEFT) {
+                shop.buy(player, material, 64);
+            } else if (click == ClickType.SHIFT_RIGHT) {
+                shop.sellMaterial(player, material, Integer.MAX_VALUE);
+            }
+            return;
+        }
+
+        if (action.equals("sell") && itemData != null) {
+            Material material = Material.matchMaterial(itemData);
+            if (material == null) return;
+            if (event.getClick() == ClickType.MIDDLE) {
+                ShopService.Category category = shop.categoryFor(material);
+                if (category != null) shop.openQuantity(player, category.id(), material);
+            } else if (event.getClick() == ClickType.RIGHT) {
+                shop.sellMaterial(player, material, 1);
+                shop.openSell(player);
+            } else {
+                shop.sellMaterial(player, material, Integer.MAX_VALUE);
+                shop.openSell(player);
+            }
+            return;
+        }
+
         if (action.startsWith("qty:")) {
-            Material m = Material.matchMaterial(itemName);
-            int delta = Integer.parseInt(action.substring(4));
-            s.changeQuantity(p, m, delta);
-            return;
-        }
-
-        if (action.equals("sell")) {
-            Material m = Material.matchMaterial(itemName);
-            double total = s.sellMaterial(p, m);
-            if (total > 0) {
-                p.sendMessage("§aBerhasil menjual " + s.pretty(m) + ": §fRp " + s.money(total));
-                s.openSell(p);
-            } else p.sendMessage("§cTransaksi penjualan gagal atau item tidak tersedia.");
-            return;
-        }
-
-        if (action.equals("sellhand")) {
-            double total = s.sellHand(p);
-            if (total > 0) {
-                p.sendMessage("§aBerhasil menjual item tangan: §fRp " + s.money(total));
-                s.openSell(p);
-            } else p.sendMessage("§cItem di tangan tidak memiliki harga jual atau transaksi gagal.");
-            return;
-        }
-
-        if (action.equals("sellall")) {
-            double total = s.sellContents(p);
-            if (total > 0) {
-                p.sendMessage("§aBerhasil menjual inventory: §fRp " + s.money(total));
-                s.openSell(p);
-            } else p.sendMessage("§cTidak ada item yang dapat dijual atau transaksi gagal.");
-            return;
-        }
-
-        if (action.equals("category")) { s.openCategory(p, itemName); return; }
-        if (action.equals("back")) { s.openShop(p); return; }
-        if (action.equals("close")) { s.clearQuantity(p); p.closeInventory(); return; }
-
-        if (action.equals("buy")) {
-            s.openQuantity(p, Material.matchMaterial(itemName));
+            try {
+                shop.changeQuantity(player, Integer.parseInt(action.substring(4)));
+            } catch (NumberFormatException ignored) {
+            }
             return;
         }
 
         if (action.equals("buy:selected")) {
-            Material m = Material.matchMaterial(itemName);
-            int amount = s.selectedQuantity(p);
-            if (s.buy(p, m, amount)) {
-                p.sendMessage("§aPembelian berhasil: §f" + amount + "x " + s.pretty(m));
-            } else {
-                p.sendMessage("§cSaldo tidak cukup atau inventory tidak memiliki ruang.");
+            ShopService.QuantitySession session = quantitySession(player);
+            if (session != null) shop.buy(player, session.material(), shop.selectedQuantity(player));
+            return;
+        }
+
+        if (action.equals("sell:selected")) {
+            ShopService.QuantitySession session = quantitySession(player);
+            if (session != null) {
+                shop.sellMaterial(player, session.material(), shop.selectedQuantity(player));
             }
             return;
         }
 
         if (action.equals("backcat")) {
-            Material m = Material.matchMaterial(itemName);
-            if (m != null) {
-                for (var entry : s.cats.entrySet()) {
-                    if (entry.getValue().contains(m)) {
-                        s.openCategory(p, entry.getKey());
-                        return;
-                    }
-                }
-            }
+            if (itemData != null) shop.openCategory(player, itemData);
+            return;
+        }
+
+        if (action.equals("sellhand")) {
+            shop.sellHand(player);
+            shop.openSell(player);
+            return;
+        }
+
+        if (action.equals("sellall")) {
+            shop.sellContents(player);
+            shop.openSell(player);
         }
     }
 
-    @EventHandler
-    public void drag(InventoryDragEvent e) {
-        String title = ChatColor.stripColor(e.getView().getTitle());
-        if (title.contains("IMPERIAL SHOP") || title.contains("SHOP »")
-                || title.contains("BELI »") || title.contains("SELL GUI")) {
-            e.setCancelled(true);
+    private ShopService.QuantitySession quantitySession(Player player) {
+        try {
+            var field = ShopService.class.getDeclaredField("quantities");
+            field.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            var sessions = (java.util.Map<java.util.UUID, ShopService.QuantitySession>) field.get(shop);
+            return sessions.get(player.getUniqueId());
+        } catch (ReflectiveOperationException ignored) {
+            return null;
         }
     }
 
+    private int currentMainPage(String title) {
+        // Main menu stores no page in the title; infer from the active GUI is not reliable.
+        // Returning 0 keeps navigation safe. Category navigation is explicit in its action.
+        return 0;
+    }
+
+    private boolean isShopGui(String title) {
+        return title.contains("IMPERIAL SHOP")
+                || title.contains("SHOP »")
+                || title.contains("TRANSAKSI »")
+                || title.contains("SELL GUI");
+    }
+
     @EventHandler
-    public void close(InventoryCloseEvent e) {
-        if (e.getPlayer() instanceof Player p) {
-            String title = ChatColor.stripColor(e.getView().getTitle());
-            if (title.contains("BELI »")) s.clearQuantity(p);
+    public void onDrag(InventoryDragEvent event) {
+        String title = ChatColor.stripColor(event.getView().getTitle());
+        if (isShopGui(title)) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onClose(InventoryCloseEvent event) {
+        if (event.getPlayer() instanceof Player player) {
+            String title = ChatColor.stripColor(event.getView().getTitle());
+            if (title.contains("TRANSAKSI »")) shop.clearQuantity(player);
         }
     }
 }
