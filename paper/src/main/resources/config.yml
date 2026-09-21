@@ -48,7 +48,7 @@ categories:
   ores:
     material: "DIAMOND"
     name: "&bOres & Minerals"
-    items: [COAL, CHARCOAL, RAW_IRON, IRON_INGOT, IRON_NUGGET, RAW_GOLD, GOLD_INGOT, GOLD_NUGGET, RAW_COPPER, COPPER_INGOT, REDSTONE, LAPIS_LAZULI, DIAMOND, EMERALD, AMETHYST_SHARD, QUARTZ, NETHERITE_SCRAP, ANCIENT_DEBRIS, NETHERITE_INGOT]
+    items: [COAL, CHARCOAL, RAW_IRON, IRON_INGOT, IRON_NUGGET, RAW_GOLD, GOLD_INGOT, GOLD_NUGGET, RAW_COPPER, COPPER_INGOT, REDSTONE, LAPIS_LAZULI, DIAMOND, EMERALD, AMETHYST_SHARD, QUARTZ, ]
   farming:
     material: "WHEAT"
     name: "&aFarming"
@@ -56,7 +56,7 @@ categories:
   mobdrops:
     material: "ROTTEN_FLESH"
     name: "&cMob Drops"
-    items: [ROTTEN_FLESH, BONE, BONE_MEAL, STRING, SPIDER_EYE, GUNPOWDER, ENDER_PEARL, BLAZE_ROD, BLAZE_POWDER, MAGMA_CREAM, GHAST_TEAR, SLIME_BALL, PHANTOM_MEMBRANE, PRISMARINE_SHARD, PRISMARINE_CRYSTALS, SHULKER_SHELL, RABBIT_FOOT]
+    items: [ROTTEN_FLESH, BONE, BONE_MEAL, STRING, SPIDER_EYE, GUNPOWDER, ENDER_PEARL, BLAZE_ROD, BLAZE_POWDER, MAGMA_CREAM, GHAST_TEAR, SLIME_BALL, PHANTOM_MEMBRANE, PRISMARINE_SHARD, PRISMARINE_CRYSTALS, RABBIT_FOOT]
   nether:
     material: "NETHERRACK"
     name: "&4Nether"
@@ -64,7 +64,7 @@ categories:
   end:
     material: "END_STONE"
     name: "&5The End"
-    items: [END_STONE, END_STONE_BRICKS, PURPUR_BLOCK, PURPUR_PILLAR, CHORUS_FRUIT, POPPED_CHORUS_FRUIT, ENDER_PEARL, SHULKER_SHELL]
+    items: [END_STONE, END_STONE_BRICKS, PURPUR_BLOCK, PURPUR_PILLAR, CHORUS_FRUIT, POPPED_CHORUS_FRUIT, ENDER_PEARL]
   redstone:
     material: "REDSTONE"
     name: "&cRedstone"
@@ -72,14 +72,14 @@ categories:
   utility:
     material: "CHEST"
     name: "&eUtility"
-    items: [CHEST, BARREL, SHULKER_BOX, HOPPER, BUCKET, WATER_BUCKET, LAVA_BUCKET, FLINT_AND_STEEL, TORCH, LANTERN, SOUL_LANTERN, CRAFTING_TABLE, FURNACE, BLAST_FURNACE, SMOKER, ANVIL, ENCHANTING_TABLE]
+    items: [CHEST, BARREL, HOPPER, BUCKET, WATER_BUCKET, LAVA_BUCKET, FLINT_AND_STEEL, TORCH, LANTERN, SOUL_LANTERN, CRAFTING_TABLE, FURNACE, BLAST_FURNACE, SMOKER, ANVIL, ENCHANTING_TABLE]
   food:
     material: "COOKED_BEEF"
     name: "&6Food"
     items: [BREAD, APPLE, CARROT, POTATO, BAKED_POTATO, COOKED_BEEF, COOKED_PORKCHOP, COOKED_CHICKEN, COOKED_MUTTON, COOKED_RABBIT, COOKED_COD, COOKED_SALMON, GOLDEN_CARROT, PUMPKIN_PIE, COOKIE, CAKE]
   farming-special:
     material: "GOLDEN_CARROT"
-    name: "&6Farming & Rare"
+    name: "&6Farming & Misc"
     items: [HONEYCOMB, HONEY_BOTTLE, EGG, FEATHER, LEATHER, RABBIT_HIDE, INK_SAC, GLOW_INK_SAC]
 
 prices:
@@ -136,9 +136,6 @@ prices:
   EMERALD: {buy: 3500000, sell: 1400000}
   AMETHYST_SHARD: {buy: 30000, sell: 12000}
   QUARTZ: {buy: 25000, sell: 10000}
-  NETHERITE_SCRAP: {buy: 20000000, sell: 8000000}
-  ANCIENT_DEBRIS: {buy: 15000000, sell: 6000000}
-  NETHERITE_INGOT: {buy: 75000000, sell: 30000000}
   WHEAT: {buy: 4500, sell: 1800}
   WHEAT_SEEDS: {buy: 1500, sell: 600}
   CARROT: {buy: 5000, sell: 2000}
@@ -172,7 +169,6 @@ prices:
   PHANTOM_MEMBRANE: {buy: 100000, sell: 40000}
   PRISMARINE_SHARD: {buy: 30000, sell: 12000}
   PRISMARINE_CRYSTALS: {buy: 45000, sell: 18000}
-  SHULKER_SHELL: {buy: 500000, sell: 200000}
   RABBIT_FOOT: {buy: 100000, sell: 40000}
   NETHERRACK: {buy: 2500, sell: 1000}
   SOUL_SAND: {buy: 7000, sell: 2800}
@@ -209,7 +205,6 @@ prices:
   TRIPWIRE_HOOK: {buy: 10000, sell: 4000}
   CHEST: {buy: 25000, sell: 10000}
   BARREL: {buy: 30000, sell: 12000}
-  SHULKER_BOX: {buy: 1500000, sell: 600000}
   BUCKET: {buy: 30000, sell: 12000}
   WATER_BUCKET: {buy: 35000, sell: 14000}
   LAVA_BUCKET: {buy: 45000, sell: 18000}
@@ -245,6 +240,11 @@ prices:
   RABBIT_HIDE: {buy: 7000, sell: 2800}
   INK_SAC: {buy: 9000, sell: 3600}
   GLOW_INK_SAC: {buy: 15000, sell: 6000}
+
+# SHOP POLICY
+# Only materials listed inside categories are tradable.
+# Rare/endgame/OP progression items are intentionally excluded from BUY and SELL.
+# This whitelist design prevents unlisted/new items from becoming sellable accidentally.
 
 display-names: {}
 item-permissions: {}
