@@ -15,12 +15,21 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - name: Build
-        run: mvn -B clean package
-      - name: Upload artifacts
+      - name: Build all modules
+        run: mvn -B -ntp clean package
+      - name: Verify output names
+        run: |
+          test -f paper/target/imperialShop.jar
+          test -f velocity/target/imperialShop-velocity.jar
+      - name: Upload Paper/Purpur JAR
         uses: actions/upload-artifact@v4
         with:
-          name: ImperialShop-${{ github.sha }}
-          path: |
-            paper/target/*.jar
-            velocity/target/*.jar
+          name: imperialShop-paper-purpur
+          path: paper/target/imperialShop.jar
+          if-no-files-found: error
+      - name: Upload Velocity JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: imperialShop-velocity
+          path: velocity/target/imperialShop-velocity.jar
+          if-no-files-found: error
