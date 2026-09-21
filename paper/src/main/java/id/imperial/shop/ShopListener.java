@@ -129,11 +129,53 @@ public final class ShopListener implements Listener {
             return;
         }
 
+        if (action.startsWith("resultpage:")) {
+            String[] parts = action.split(":", 3);
+            if (parts.length == 3) {
+                try {
+                    String data = new String(java.util.Base64.getDecoder().decode(parts[1]), java.nio.charset.StandardCharsets.UTF_8);
+                    int targetPage = Integer.parseInt(parts[2]);
+                    if (data.equals("favorites")) {
+                        later(player, () -> shop.openFavorites(player, targetPage));
+                    } else if (data.startsWith("search:")) {
+                        later(player, () -> shop.openSearch(player, data.substring("search:".length()), targetPage));
+                    }
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            return;
+        }
+
         if (action.startsWith("mainpage:")) {
             try {
                 int targetPage = Integer.parseInt(action.substring("mainpage:".length()));
                 later(player, () -> shop.openShop(player, targetPage));
             } catch (NumberFormatException ignored) {
+            }
+            return;
+        }
+
+        if (action.equals("resultitem") && itemData != null) {
+            String[] parts = itemData.split("\\|", 2);
+            if (parts.length != 2) return;
+            Material material = Material.matchMaterial(parts[1]);
+            if (material == null) return;
+            ShopService.Category category = shop.categories.get(parts[0]);
+            if (category == null || !shop.canTrade(player, category, material)) return;
+
+            ClickType click = event.getClick();
+            if (click == ClickType.SHIFT_LEFT) {
+                boolean added = shop.plugin.favorites().toggle(player, material);
+                player.sendMessage(added ? "§d★ Ditambahkan ke favorit." : "§7☆ Dihapus dari favorit.");
+                later(player, () -> shop.openSearch(player, "", 0));
+            } else if (click == ClickType.MIDDLE) {
+                later(player, () -> shop.openQuantity(player, parts[0], material));
+            } else if (click == ClickType.LEFT) {
+                shop.buy(player, material, 1);
+            } else if (click == ClickType.RIGHT) {
+                shop.sellMaterial(player, material, 1);
+            } else if (click == ClickType.SHIFT_RIGHT) {
+                shop.sellMaterial(player, material, Integer.MAX_VALUE);
             }
             return;
         }
