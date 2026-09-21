@@ -8,6 +8,8 @@ settings:
   filler-material: "GRAY_STAINED_GLASS_PANE"
   fill-empty-slots: true
   sounds: true
+  # Anti-double-click / transaction spam protection.
+  transaction-cooldown-ms: 250
 
 gui:
   main-title: "&b&lIMPERIAL SHOP"
