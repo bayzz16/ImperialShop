@@ -182,6 +182,10 @@ public final class ShopService {
         renderQuantity(p, m, next);
     }
 
+    int selectedQuantity(Player p) {
+        return quantities.getOrDefault(p.getUniqueId(), 1);
+    }
+
     void clearQuantity(Player p) {
         quantities.remove(p.getUniqueId());
     }
