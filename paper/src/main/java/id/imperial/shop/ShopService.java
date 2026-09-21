@@ -597,22 +597,6 @@ public final class ShopService {
         inventory.setItem(22, icon(Material.ARROW, color("&eKembali"), List.of(), "backcat", session.categoryId()));
         inventory.setItem(26, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
         decorate(inventory);
-        inventory.setItem(10, icon(Material.REDSTONE_TORCH, color("&c-16"), List.of(), "qty:-16", null));
-        inventory.setItem(11, icon(Material.REDSTONE, color("&c-1"), List.of(), "qty:-1", null));
-        inventory.setItem(13, icon(material, color("&f&l" + amount + "x"),
-                List.of(color("&7Beli: &eRp " + (buy >= 0 ? money(buy * amount) : "-")),
-                        color("&7Jual: &aRp " + (sell >= 0 ? money(sell * amount) : "-"))),
-                "none", null));
-        inventory.setItem(15, icon(Material.GLOWSTONE_DUST, color("&a+1"), List.of(), "qty:+1", null));
-        inventory.setItem(16, icon(Material.GLOWSTONE, color("&a+16"), List.of(), "qty:+16", null));
-        inventory.setItem(20, icon(Material.EMERALD, color("&a&lBeli " + amount + "x"),
-                List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))),
-                "buy:selected", null));
-        inventory.setItem(24, icon(Material.GOLD_INGOT, color("&6&lJual " + amount + "x"),
-                List.of(color("&7Total: &aRp " + (sell >= 0 ? money(sell * amount) : "-"))),
-                "sell:selected", null));
-        inventory.setItem(22, icon(Material.ARROW, color("&eKembali"), List.of(), "backcat", session.categoryId()));
-        inventory.setItem(26, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
         player.openInventory(inventory);
     }
 
