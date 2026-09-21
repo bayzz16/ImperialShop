@@ -24,7 +24,6 @@ public final class ShopService {
     final Map<Material, Price> prices = new EnumMap<>(Material.class);
     final Map<String, Category> categories = new LinkedHashMap<>();
     private final Map<UUID, QuantitySession> quantities = new HashMap<>();
-    private final Map<UUID, Inventory> sellInputs = new HashMap<>();
 
     ShopService(ImperialShopPlugin plugin, Economy economy) {
         this.plugin = plugin;
@@ -305,25 +304,6 @@ public final class ShopService {
         player.openInventory(inventory);
     }
 
-    void openSellGui(Player player) {
-        Inventory inventory = Bukkit.createInventory(null, 54,
-                color(plugin.getConfig().getString("gui.sell-input-title", "&a&lIMPERIAL SELL GUI")));
-
-        for (int slot = 0; slot < 45; slot++) inventory.setItem(slot, null);
-        inventory.setItem(45, icon(Material.GOLD_INGOT, color("&a&lJUAL SEMUA"),
-                List.of(color("&7Jual semua item valid yang ada di sini.")), "sellinput:all", null));
-        inventory.setItem(47, icon(Material.CHEST, color("&e&lLIHAT SELL LIST"),
-                List.of(color("&7Lihat item di inventory yang bisa dijual.")), "sellgui:list", null));
-        inventory.setItem(49, icon(Material.BARRIER, color("&cTUTUP"), List.of(), "close", null));
-        inventory.setItem(51, icon(Material.ARROW, color("&eKEMBALI KE SHOP"), List.of(), "shop", null));
-        inventory.setItem(53, icon(Material.PAPER, color("&f&lINFO"),
-                List.of(color("&7Masukkan item ke slot atas."), color("&7Item yang tidak terdaftar akan dikembalikan.")),
-                "none", null));
-
-        sellInputs.put(player.getUniqueId(), inventory);
-        player.openInventory(inventory);
-    }
-
     void openSell(Player player) {
         Inventory inventory = Bukkit.createInventory(null, guiSize("sell-size"),
                 color(plugin.getConfig().getString("gui.sell-title", "&a&lSELL GUI")));
@@ -540,83 +520,20 @@ public final class ShopService {
         if (category == null || price == null || price.sell() < 0 || !canTrade(player, category, material)) return 0;
         int amount = count(player, material);
         if (amount < 1) return 0;
-
         double total = sellPrice(player, material) * amount;
         if (!Double.isFinite(total) || total < 0) return 0;
         if (!removeMaterial(player, material, amount)) return 0;
-
         EconomyResponse response = economy.depositPlayer(player, total);
         if (!response.transactionSuccess()) {
             addMaterialBack(player, material, amount);
             return 0;
         }
-
         message(player, "sold", Map.of(
                 "%amount%", String.valueOf(amount),
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
         sound(player, "sell");
         return total;
-    }
-
-    double sellInput(Player player) {
-        Inventory input = sellInputs.get(player.getUniqueId());
-        if (input == null) return 0;
-
-        double total = 0;
-        List<SlotBackup> sold = new ArrayList<>();
-
-        for (int slot = 0; slot < 45; slot++) {
-            ItemStack stack = input.getItem(slot);
-            if (stack == null || stack.getType().isAir()) continue;
-            Category category = categoryFor(stack.getType());
-            Price price = prices.get(stack.getType());
-            if (category == null || price == null || price.sell() < 0 || !canTrade(player, category, stack.getType())) continue;
-
-            int amount = stack.getAmount();
-            if (amount < 1) continue;
-            double value = sellPrice(player, stack.getType()) * amount;
-            if (!Double.isFinite(value) || value < 0) continue;
-
-            sold.add(new SlotBackup(slot, stack.clone()));
-            total += value;
-        }
-
-        if (sold.isEmpty() || total <= 0) return 0;
-        for (SlotBackup backup : sold) input.setItem(backup.slot(), null);
-
-        EconomyResponse response = economy.depositPlayer(player, total);
-        if (!response.transactionSuccess()) {
-            for (SlotBackup backup : sold) input.setItem(backup.slot(), backup.stack());
-            return 0;
-        }
-
-        message(player, "sold", Map.of(
-                "%amount%", "input",
-                "%item%", "items",
-                "%price%", "Rp " + money(total)));
-        sound(player, "sell");
-        return total;
-    }
-
-    void returnSellInput(Player player) {
-        Inventory input = sellInputs.remove(player.getUniqueId());
-        if (input == null) return;
-        for (int slot = 0; slot < 45; slot++) {
-            ItemStack stack = input.getItem(slot);
-            if (stack == null || stack.getType().isAir()) continue;
-            Map<Integer, ItemStack> leftover = player.getInventory().addItem(stack);
-            if (!leftover.isEmpty()) {
-                for (ItemStack drop : leftover.values()) {
-                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
-                }
-            }
-            input.setItem(slot, null);
-        }
-    }
-
-    Inventory sellInput(Player player) {
-        return sellInputs.get(player.getUniqueId());
     }
 
     double sellContents(Player player) {
