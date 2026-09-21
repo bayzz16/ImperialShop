@@ -1,1 +1,8 @@
-{"id":"imperialshop","name":"ImperialShop","version":"1.0.0","description":"ImperialShop proxy bridge for Velocity","authors":["Imperial X SOL"],"main":"id.imperial.shop.velocity.ImperialShopVelocity"}
+{
+  "id": "imperialshop",
+  "name": "ImperialShop",
+  "version": "2.0.0",
+  "description": "ImperialShop proxy bridge for Velocity 3.x",
+  "authors": ["Imperial X SOL"],
+  "main": "id.imperial.shop.velocity.ImperialShopVelocity"
+}
