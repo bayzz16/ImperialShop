@@ -18,8 +18,8 @@ public final class SellCommand implements CommandExecutor {
             sender.sendMessage("Player only.");
             return true;
         }
-        if (!player.hasPermission("imperialshop.use")) {
-            player.sendMessage("§cTidak memiliki izin.");
+        if (!shop.canSellGui(player)) {
+            player.sendMessage("§cKamu tidak memiliki izin menggunakan SellGUI.");
             return true;
         }
         shop.openSellGui(player);
