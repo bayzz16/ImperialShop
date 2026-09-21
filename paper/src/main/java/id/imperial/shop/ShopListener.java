@@ -92,7 +92,7 @@ public final class ShopListener implements Listener {
 
         if (action.equals("sellgui")) {
             shop.clearQuantity(player);
-            shop.openSell(player);
+            shop.openSellGui(player);
             return;
         }
 
