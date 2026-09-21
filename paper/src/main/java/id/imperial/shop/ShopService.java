@@ -362,6 +362,10 @@ public final class ShopService {
         }
 
         inventory.setItem(45, nav(Material.ARROW, "&eHalaman Sebelumnya", "mainpage:" + (page - 1), page > 0));
+        inventory.setItem(46, icon(Material.PAPER, color("&b&lCARI ITEM"),
+                List.of(color("&7Gunakan: &f/shop search <kata>")), "search", null));
+        inventory.setItem(48, icon(Material.NETHER_STAR, color("&d&lFAVORITES"),
+                List.of(color("&7Item favoritmu")), "favorites", null));
         inventory.setItem(47, icon(Material.GOLD_INGOT,
                 color("&6&lSaldo"),
                 List.of(color("&7Saldo: &eRp " + money(economy.getBalance(player)))),
@@ -373,6 +377,10 @@ public final class ShopService {
         decorate(inventory);
         // Re-apply navigation after filler.
         inventory.setItem(45, nav(Material.ARROW, "&eHalaman Sebelumnya", "page:-1", page > 0));
+        inventory.setItem(46, icon(Material.PAPER, color("&b&lCARI ITEM"),
+                List.of(color("&7Gunakan: &f/shop search <kata>")), "search", null));
+        inventory.setItem(48, icon(Material.NETHER_STAR, color("&d&lFAVORITES"),
+                List.of(color("&7Item favoritmu")), "favorites", null));
         inventory.setItem(47, icon(Material.GOLD_INGOT, color("&6&lSaldo"),
                 List.of(color("&7Saldo: &eRp " + money(economy.getBalance(player)))),
                 "none", null));
