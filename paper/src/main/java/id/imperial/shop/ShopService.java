@@ -721,10 +721,6 @@ public final class ShopService {
         }
     }
 
-    Inventory sellInput(Player player) {
-        return sellInputs.get(player.getUniqueId());
-    }
-
     double sellContents(Player player) {
         double total = 0;
         List<SlotBackup> backups = new ArrayList<>();
