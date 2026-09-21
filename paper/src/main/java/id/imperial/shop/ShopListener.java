@@ -79,11 +79,9 @@ public final class ShopListener implements Listener {
             return;
         }
 
-        if (action.startsWith("page:")) {
+        if (action.startsWith("mainpage:")) {
             try {
-                int delta = Integer.parseInt(action.substring(5));
-                int current = currentMainPage(title);
-                shop.openShop(player, Math.max(0, current + delta));
+                shop.openShop(player, Integer.parseInt(action.substring("mainpage:".length())));
             } catch (NumberFormatException ignored) {
             }
             return;
@@ -172,21 +170,7 @@ public final class ShopListener implements Listener {
     }
 
     private ShopService.QuantitySession quantitySession(Player player) {
-        try {
-            var field = ShopService.class.getDeclaredField("quantities");
-            field.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            var sessions = (java.util.Map<java.util.UUID, ShopService.QuantitySession>) field.get(shop);
-            return sessions.get(player.getUniqueId());
-        } catch (ReflectiveOperationException ignored) {
-            return null;
-        }
-    }
-
-    private int currentMainPage(String title) {
-        // Main menu stores no page in the title; infer from the active GUI is not reliable.
-        // Returning 0 keeps navigation safe. Category navigation is explicit in its action.
-        return 0;
+        return shop.quantitySession(player);
     }
 
     private boolean isShopGui(String title) {
