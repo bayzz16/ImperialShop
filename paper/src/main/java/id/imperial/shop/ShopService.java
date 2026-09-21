@@ -1008,3 +1008,4 @@ public final class ShopService {
         }
         return total;
     }
+}
