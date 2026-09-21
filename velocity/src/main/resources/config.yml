@@ -1,4 +1,7 @@
-backend-server: "survival"
+# ImperialShop Velocity Bridge
+# Gunakan secret yang sama di SEMUA backend Paper/Purpur dan di Velocity.
+# Lebih aman memakai environment variable IMPERIALSHOP_NETWORK_SECRET.
+network-secret: "CHANGE-ME"
 
 commands:
   shop: true
@@ -8,5 +11,6 @@ commands:
   sellhand: true
 
 messages:
-  forwarded: "Membuka ImperialShop di server utama..."
-  unavailable: "Server shop sedang tidak tersedia."
+  forwarded: "ImperialShop diteruskan ke server saat ini."
+  unavailable: "Server saat ini belum siap menerima ImperialShop."
+  not-configured: "Network secret ImperialShop belum dikonfigurasi."
