@@ -785,6 +785,11 @@ public final class ShopService {
         }
 
         message(player, "sold-gui", Map.of("%price%", "Rp " + money(total)));
+        for (SlotBackup backup : sold) {
+            ItemStack stack = backup.stack();
+            plugin.history().record(player, "SELL", stack.getType(), stack.getAmount(),
+                    sellPrice(player, stack.getType()) * stack.getAmount());
+        }
         sound(player, "sell");
         return total;
     }
@@ -855,6 +860,11 @@ public final class ShopService {
                 "%amount%", "inventory",
                 "%item%", "items",
                 "%price%", "Rp " + money(total)));
+        for (SlotBackup backup : backups) {
+            ItemStack stack = backup.stack();
+            plugin.history().record(player, "SELL", stack.getType(), stack.getAmount(),
+                    sellPrice(player, stack.getType()) * stack.getAmount());
+        }
         sound(player, "sell");
         return total;
     }
