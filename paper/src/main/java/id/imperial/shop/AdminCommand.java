@@ -37,7 +37,7 @@ public final class AdminCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("info")) {
             sender.sendMessage("§bImperialShop §f2.0.0");
             sender.sendMessage("§7Harga terdaftar: §f" + shop.prices.size());
-            sender.sendMessage("§7Kategori: §f" + shop.cats.size());
+            sender.sendMessage("§7Kategori: §f" + shop.categories.size());
             sender.sendMessage("§7Platform: §fPaper/Purpur 1.21.x");
             return true;
         }
