@@ -551,9 +551,9 @@ public final class ShopService {
             return;
         }
         int max = Math.min(quantityMax(), Math.max(price.maxBuy(), price.maxSell()));
-        int initial = Math.min(max, Math.max(1, Math.min(
-                price.buy() >= 0 ? price.minBuy() : Integer.MAX_VALUE,
-                price.sell() >= 0 ? price.minSell() : Integer.MAX_VALUE)));
+        int initial = Math.min(max, Math.max(
+                price.buy() >= 0 ? price.minBuy() : 1,
+                price.sell() >= 0 ? price.minSell() : 1));
         quantities.put(player.getUniqueId(), new QuantitySession(categoryId, material, initial, max));
         renderQuantity(player);
     }
