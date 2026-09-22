@@ -932,10 +932,18 @@ public final class ShopService {
         double total = unit * amount;
         if (!Double.isFinite(total) || total < 0) return false;
 
-        if (!economy.has(player, total)) {
+        double balance = economy.getBalance(player);
+        if (!Double.isFinite(balance) || balance < 0) {
+            message(player, "economy-transaction-failed", Map.of("%reason%", "Saldo economy tidak dapat dibaca."));
+            sound(player, "fail");
+            return false;
+        }
+
+        if (balance + 0.000001D < total || !economy.has(player, total)) {
             message(player, "not-enough-money", Map.of(
                     "%price%", "Rp " + money(total),
-                    "%balance%", "Rp " + money(economy.getBalance(player))));
+                    "%balance%", "Rp " + money(balance)));
+            transactionFeedback(player, false, "BUY", material, amount, total);
             sound(player, "fail");
             return false;
         }
@@ -965,6 +973,7 @@ public final class ShopService {
                 "%amount%", String.valueOf(amount),
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
+        transactionFeedback(player, true, "BUY", material, amount, total);
         plugin.history().record(player, "BUY", material, amount, total);
         sound(player, "buy");
         return true;
@@ -1024,6 +1033,7 @@ public final class ShopService {
                 "%amount%", String.valueOf(amount),
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
+        transactionFeedback(player, true, "SELL", material, amount, total);
         plugin.history().record(player, "SELL", material, amount, total);
         sound(player, "sell");
         return total;
@@ -1286,6 +1296,25 @@ public final class ShopService {
         String value = plugin.getConfig().getString("messages." + key, "");
         for (var entry : replacements.entrySet()) value = value.replace(entry.getKey(), entry.getValue());
         if (!value.isBlank()) player.sendMessage(color(value));
+    }
+
+    private void transactionFeedback(Player player, boolean success, String type,
+                                       Material material, int amount, double total) {
+        String prefix = "BUY".equals(type) ? "-" : "+";
+        String color = success ? ("BUY".equals(type) ? "§c" : "§a") : "§c";
+        String verb = "BUY".equals(type) ? "PEMBELIAN" : "PENJUALAN";
+        String item = amount + "x " + ChatColor.stripColor(pretty(material));
+        String value = prefix + " Rp " + money(total);
+
+        if (success) {
+            player.sendTitle(
+                    color + value,
+                    "§f" + verb + " §8• §7" + item,
+                    5, 30, 10);
+            player.sendActionBar(color + value + " §8• §7" + item);
+        } else {
+            player.sendActionBar("§c✦ §fSaldo tidak cukup §8• §7Butuh §eRp " + money(total));
+        }
     }
 
     private void sound(Player player, String type) {
