@@ -238,10 +238,10 @@ public final class ShopListener implements Listener {
             }
 
             ClickType click = event.getClick();
-            // Normal clicks open the quantity selector instead of relying on
-            // left/right mouse semantics, which are awkward on Bedrock/Geyser.
+            // Normal clicks open an item preview; the preview then chooses BUY/SELL.
+            // This keeps the shop readable and gives Bedrock/Geyser players a clear action path.
             if (click == ClickType.LEFT || click == ClickType.RIGHT || click == ClickType.MIDDLE) {
-                later(player, () -> shop.openQuantity(player, parts[0], material));
+                later(player, () -> shop.openPreview(player, parts[0], material));
             } else if (click == ClickType.SHIFT_LEFT) {
                 shop.buy(player, material, 64);
             } else if (click == ClickType.SHIFT_RIGHT) {
