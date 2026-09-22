@@ -196,7 +196,7 @@ public final class ShopService {
 
     boolean canSellAllItem(Player player, Category category, Material material) {
         if (!canSellAllCategory(player, category)) return false;
-        String permission = plugin.getConfig().getString(
+        String permission = plugin.getShopConfig().getString(
                 "item-permissions." + category.id() + "." + material.name(), "");
         return permission.isBlank() || player.hasPermission(permission);
     }
@@ -206,7 +206,7 @@ public final class ShopService {
                 || player.hasPermission("imperialshop.sellallhand." + category.id()))) {
             return false;
         }
-        String permission = plugin.getConfig().getString(
+        String permission = plugin.getShopConfig().getString(
                 "item-permissions." + category.id() + "." + material.name(), "");
         return permission.isBlank() || player.hasPermission(permission);
     }
@@ -216,7 +216,7 @@ public final class ShopService {
                 || player.hasPermission("imperialshop.sellgui." + category.id());
         if (!sectionPermission) return false;
 
-        String permission = plugin.getConfig().getString(
+        String permission = plugin.getShopConfig().getString(
                 "item-permissions." + category.id() + "." + material.name(), "");
         return permission.isBlank() || player.hasPermission(permission);
     }
