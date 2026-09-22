@@ -29,7 +29,7 @@ public final class ShopService {
     private final Map<UUID, Long> transactionCooldowns = new HashMap<>();
 
     enum GuiType {
-        MAIN, CATEGORY, QUANTITY, CONFIRM, SELL_LIST, SELL_INPUT
+        MAIN, CATEGORY, QUANTITY, CONFIRM, SEARCH, SELL_LIST, SELL_INPUT
     }
 
     static final class ShopHolder implements org.bukkit.inventory.InventoryHolder {
@@ -285,6 +285,21 @@ public final class ShopService {
 
     void openShop(Player player) {
         openShop(player, 0);
+    }
+
+    void openSearchInput(Player player) {
+        Inventory inventory = createGui(GuiType.SEARCH, org.bukkit.event.inventory.InventoryType.ANVIL.size(),
+                color("&b&lᴄᴀʀɪ ɪᴛᴇᴍ"));
+        org.bukkit.inventory.AnvilInventory anvil = (org.bukkit.inventory.AnvilInventory) inventory;
+        anvil.setRepairCost(0);
+
+        ItemStack input = icon(Material.PAPER, color("&fKetik nama item..."),
+                List.of(color("&7Masukkan nama/material item lalu ambil hasil.")),
+                "search:input", null);
+        inventory.setItem(0, input);
+
+        player.openInventory(inventory);
+        player.sendMessage(color("&b✦ &fSearch &8» &7Ketik nama item di kolom pencarian, lalu klik hasil."));
     }
 
     void openSearch(Player player, String query, int page) {
