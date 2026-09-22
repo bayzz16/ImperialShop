@@ -97,9 +97,10 @@ public final class AdminCommand implements CommandExecutor {
                     return true;
                 }
 
-                plugin.getConfig().set("prices." + material.name() + ".buy", buy);
-                plugin.getConfig().set("prices." + material.name() + ".sell", sell);
-                plugin.saveConfig();
+                plugin.getShopConfig().set("prices." + material.name() + ".buy", buy);
+                plugin.getShopConfig().set("prices." + material.name() + ".sell", sell);
+                plugin.saveShops();
+                plugin.reloadShops();
                 shop.reload();
 
                 sender.sendMessage("§aHarga " + material.name() + " diperbarui.");
