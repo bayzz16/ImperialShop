@@ -659,13 +659,13 @@ public final class ShopService {
         inventory.setItem(23, icon(Material.CHEST, color("&e&lMAX"),
                 List.of(color("&7Atur jumlah menjadi &f" + session.max())), "qty:set:max", null));
 
-        inventory.setItem(19 + 9, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
+        inventory.setItem(19, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
                 List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))),
                 "buy:selected", null));
-        inventory.setItem(21 + 9, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
+        inventory.setItem(21, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
                 List.of(color("&7Total: &aRp " + (sell >= 0 ? money(sell * amount) : "-"))),
                 "sell:selected", null));
-        inventory.setItem(23 + 9, icon(Material.ARROW, color("&8‹ &eKembali"),
+        inventory.setItem(23, icon(Material.ARROW, color("&8‹ &eKembali"),
                 List.of(color("&7Kembali ke daftar item")), "backcat", session.categoryId()));
         inventory.setItem(25, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
 
@@ -688,11 +688,11 @@ public final class ShopService {
         inventory.setItem(21, icon(Material.PAPER, color("&f&l32x"), List.of(color("&7Jumlah &f32")), "qty:set:32", null));
         inventory.setItem(22, icon(Material.PAPER, color("&f&l64x"), List.of(color("&7Jumlah &f64")), "qty:set:64", null));
         inventory.setItem(23, icon(Material.CHEST, color("&e&lMAX"), List.of(color("&7Jumlah &f" + session.max())), "qty:set:max", null));
-        inventory.setItem(19 + 9, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
+        inventory.setItem(19, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
                 List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))), "buy:selected", null));
-        inventory.setItem(21 + 9, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
+        inventory.setItem(21, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
                 List.of(color("&7Total: &aRp " + (sell >= 0 ? money(sell * amount) : "-"))), "sell:selected", null));
-        inventory.setItem(23 + 9, icon(Material.ARROW, color("&8‹ &eKembali"),
+        inventory.setItem(23, icon(Material.ARROW, color("&8‹ &eKembali"),
                 List.of(color("&7Kembali ke daftar item")), "backcat", session.categoryId()));
         inventory.setItem(25, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
         player.openInventory(inventory);
@@ -702,6 +702,15 @@ public final class ShopService {
         QuantitySession current = quantities.get(player.getUniqueId());
         if (current == null) return;
         int next = Math.max(1, Math.min(current.max(), current.amount() + delta));
+        quantities.put(player.getUniqueId(), new QuantitySession(
+                current.categoryId(), current.material(), next, current.max()));
+        renderQuantity(player);
+    }
+
+    void setQuantity(Player player, int amount) {
+        QuantitySession current = quantities.get(player.getUniqueId());
+        if (current == null) return;
+        int next = Math.max(1, Math.min(current.max(), amount));
         quantities.put(player.getUniqueId(), new QuantitySession(
                 current.categoryId(), current.material(), next, current.max()));
         renderQuantity(player);
