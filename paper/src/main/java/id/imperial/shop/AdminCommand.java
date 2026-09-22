@@ -31,12 +31,20 @@ public final class AdminCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("reload")) {
+            if (!sender.hasPermission("imperialshop.reload")) {
+                sender.sendMessage("§cTidak memiliki izin: imperialshop.reload");
+                return true;
+            }
             plugin.reloadPlugin();
             sender.sendMessage("§aImperialShop berhasil di-reload.");
             return true;
         }
 
         if (args[0].equalsIgnoreCase("info")) {
+            if (!sender.hasPermission("imperialshop.info")) {
+                sender.sendMessage("§cTidak memiliki izin: imperialshop.info");
+                return true;
+            }
             sender.sendMessage("§bImperialShop §f2.1.0");
             sender.sendMessage("§7Harga terdaftar: §f" + shop.prices.size());
             sender.sendMessage("§7Kategori: §f" + shop.categories.size());
@@ -45,6 +53,10 @@ public final class AdminCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("stats")) {
+            if (!sender.hasPermission("imperialshop.info")) {
+                sender.sendMessage("§cTidak memiliki izin: imperialshop.info");
+                return true;
+            }
             if (args.length >= 2) {
                 org.bukkit.OfflinePlayer target = org.bukkit.Bukkit.getOfflinePlayer(args[1]);
                 TransactionHistory.Stats stats = plugin.history().stats(target.getUniqueId());
@@ -59,6 +71,10 @@ public final class AdminCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("history")) {
+            if (!sender.hasPermission("imperialshop.info")) {
+                sender.sendMessage("§cTidak memiliki izin: imperialshop.info");
+                return true;
+            }
             int limit = 10;
             if (args.length >= 2) {
                 try {
@@ -78,6 +94,10 @@ public final class AdminCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("price") && args.length >= 4) {
+            if (!sender.hasPermission("imperialshop.price")) {
+                sender.sendMessage("§cTidak memiliki izin: imperialshop.price");
+                return true;
+            }
             Material material = Material.matchMaterial(args[1]);
             if (material == null) {
                 sender.sendMessage("§cMaterial tidak ditemukan.");
