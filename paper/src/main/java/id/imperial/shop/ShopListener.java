@@ -208,12 +208,10 @@ public final class ShopListener implements Listener {
             }
 
             ClickType click = event.getClick();
-            if (click == ClickType.MIDDLE) {
+            // Normal clicks open the quantity selector instead of relying on
+            // left/right mouse semantics, which are awkward on Bedrock/Geyser.
+            if (click == ClickType.LEFT || click == ClickType.RIGHT || click == ClickType.MIDDLE) {
                 later(player, () -> shop.openQuantity(player, parts[0], material));
-            } else if (click == ClickType.LEFT) {
-                shop.buy(player, material, 1);
-            } else if (click == ClickType.RIGHT) {
-                shop.sellMaterial(player, material, 1);
             } else if (click == ClickType.SHIFT_LEFT) {
                 shop.buy(player, material, 64);
             } else if (click == ClickType.SHIFT_RIGHT) {
@@ -237,6 +235,22 @@ public final class ShopListener implements Listener {
             } else {
                 shop.sellGuiAllMaterial(player, material);
                 later(player, () -> shop.openSell(player));
+            }
+            return;
+        }
+
+        if (action.startsWith("qty:set:")) {
+            String value = action.substring("qty:set:".length());
+            ShopService.QuantitySession session = shop.quantitySession(player);
+            if (session != null) {
+                if ("max".equalsIgnoreCase(value)) {
+                    shop.setQuantity(player, session.max());
+                } else {
+                    try {
+                        shop.setQuantity(player, Integer.parseInt(value));
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
             }
             return;
         }
