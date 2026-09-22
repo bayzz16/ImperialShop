@@ -243,15 +243,36 @@ public final class ShopService {
 
     private double modifier(Player player, String type) {
         double multiplier = 1.0;
-        var section = plugin.getShopConfig().getConfigurationSection("price-modifiers");
-        if (section == null) return multiplier;
+        var config = plugin.getShopConfig();
 
-        for (String id : section.getKeys(false)) {
-            String permission = section.getString(id + ".permission", "");
-            if (permission.isBlank() || player.hasPermission(permission)) {
-                double value = section.getDouble(id + "." + type + "-multiplier", 1.0);
-                if (Double.isFinite(value) && value >= 0) multiplier *= value;
+        // Legacy/general multipliers remain composable for server-wide modifiers.
+        var section = config.getConfigurationSection("price-modifiers");
+        if (section != null) {
+            for (String id : section.getKeys(false)) {
+                String permission = section.getString(id + ".permission", "");
+                if (permission.isBlank() || player.hasPermission(permission)) {
+                    double value = section.getDouble(id + "." + type + "-multiplier", 1.0);
+                    if (Double.isFinite(value) && value >= 0) multiplier *= value;
+                }
             }
+        }
+
+        // Discounts are intentionally non-stacking: use the strongest matching rule.
+        var discounts = config.getConfigurationSection("discounts");
+        if (discounts != null) {
+            double best = type.equals("buy") ? 1.0 : 1.0;
+            boolean matched = false;
+            for (String id : discounts.getKeys(false)) {
+                String permission = discounts.getString(id + ".permission", "");
+                if (!permission.isBlank() && !player.hasPermission(permission)) continue;
+                double value = discounts.getDouble(id + "." + type + "-multiplier", 1.0);
+                if (!Double.isFinite(value) || value < 0) continue;
+                if (!matched || (type.equals("buy") ? value < best : value > best)) {
+                    best = value;
+                    matched = true;
+                }
+            }
+            if (matched) multiplier *= best;
         }
         return multiplier;
     }
