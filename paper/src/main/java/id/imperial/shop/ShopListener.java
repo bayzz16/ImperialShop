@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -356,8 +357,13 @@ public final class ShopListener implements Listener {
             }
         }
     }
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        shop.cleanup(event.getPlayer());
+    }
 
     private void later(Player player, Runnable task) {
         shop.plugin.getServer().getScheduler().runTask(shop.plugin, task);
     }
 }
+
