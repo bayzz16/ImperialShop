@@ -88,6 +88,17 @@ public final class ShopListener implements Listener {
         String itemData = data.get(shop.itemKey, PersistentDataType.STRING);
         if (action == null || action.equals("none")) return;
 
+        if (action.equals("confirm")) {
+            later(player, () -> shop.confirmPending(player));
+            return;
+        }
+
+        if (action.equals("cancel")) {
+            shop.clearPending(player);
+            later(player, () -> shop.openShop(player));
+            return;
+        }
+
         if (action.equals("close")) {
             later(player, player::closeInventory);
             return;
