@@ -624,31 +624,77 @@ public final class ShopService {
         double buy = buyPrice(player, material);
         double sell = sellPrice(player, material);
 
+        boolean canDecrease64 = amount > 64;
         boolean canDecrease16 = amount > 16;
         boolean canDecrease1 = amount > 1;
         boolean canIncrease1 = amount < session.max();
         boolean canIncrease16 = amount <= session.max() - 16;
+        boolean canIncrease64 = amount <= session.max() - 64;
 
-        inventory.setItem(10, nav(Material.REDSTONE_TORCH, "&c-16", "qty:-16", canDecrease16));
-        inventory.setItem(11, nav(Material.REDSTONE, "&c-1", "qty:-1", canDecrease1));
+        // Universal amount controls: easy to use on Java and Bedrock/Geyser.
+        inventory.setItem(10, nav(Material.REDSTONE_TORCH, "&c-64", "qty:-64", canDecrease64));
+        inventory.setItem(11, nav(Material.REDSTONE, "&c-16", "qty:-16", canDecrease16));
+        inventory.setItem(12, nav(Material.REDSTONE_BLOCK, "&c-1", "qty:-1", canDecrease1));
         inventory.setItem(13, icon(material, color("&f&l" + amount + "x"),
                 List.of(
                         color("&7Beli: &eRp " + (buy >= 0 ? money(buy * amount) : "-")),
                         color("&7Jual: &aRp " + (sell >= 0 ? money(sell * amount) : "-")),
-                        color("&7Rentang beli: &f" + price.minBuy() + "–" + price.maxBuy()),
-                        color("&7Rentang jual: &f" + price.minSell() + "–" + price.maxSell())
+                        color("&7Jumlah: &f1 - " + session.max()),
+                        "",
+                        color("&8Klik preset di bawah untuk mengubah jumlah.")
                 ), "none", null));
-        inventory.setItem(15, nav(Material.GLOWSTONE_DUST, "&a+1", "qty:+1", canIncrease1));
-        inventory.setItem(16, nav(Material.GLOWSTONE, "&a+16", "qty:+16", canIncrease16));
-        inventory.setItem(20, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
+        inventory.setItem(14, nav(Material.GLOWSTONE_DUST, "&a+1", "qty:+1", canIncrease1));
+        inventory.setItem(15, nav(Material.GLOWSTONE, "&a+16", "qty:+16", canIncrease16));
+        inventory.setItem(16, nav(Material.GLOWSTONE_BLOCK, "&a+64", "qty:+64", canIncrease64));
+
+        // Preset amounts: one click changes the selected amount.
+        inventory.setItem(19, icon(Material.PAPER, color("&f&l1x"),
+                List.of(color("&7Atur jumlah menjadi &f1")), "qty:set:1", true));
+        inventory.setItem(20, icon(Material.PAPER, color("&f&l16x"),
+                List.of(color("&7Atur jumlah menjadi &f16")), "qty:set:16", true));
+        inventory.setItem(21, icon(Material.PAPER, color("&f&l32x"),
+                List.of(color("&7Atur jumlah menjadi &f32")), "qty:set:32", true));
+        inventory.setItem(22, icon(Material.PAPER, color("&f&l64x"),
+                List.of(color("&7Atur jumlah menjadi &f64")), "qty:set:64", true));
+        inventory.setItem(23, icon(Material.CHEST, color("&e&lMAX"),
+                List.of(color("&7Atur jumlah menjadi &f" + session.max())), "qty:set:max", true));
+
+        inventory.setItem(19 + 9, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
                 List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))),
                 "buy:selected", null));
-        inventory.setItem(24, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
+        inventory.setItem(21 + 9, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
                 List.of(color("&7Total: &aRp " + (sell >= 0 ? money(sell * amount) : "-"))),
                 "sell:selected", null));
-        inventory.setItem(22, icon(Material.ARROW, color("&8‹ &eKembali"), List.of(), "backcat", session.categoryId()));
-        inventory.setItem(26, icon(Material.BARRIER, color("&cTutup"), List.of(), "close", null));
+        inventory.setItem(23 + 9, icon(Material.ARROW, color("&8‹ &eKembali"),
+                List.of(color("&7Kembali ke daftar item")), "backcat", session.categoryId()));
+        inventory.setItem(25, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+
         decorate(inventory);
+        // Re-apply controls after decoration so filler cannot overwrite them.
+        inventory.setItem(10, nav(Material.REDSTONE_TORCH, "&c-64", "qty:-64", canDecrease64));
+        inventory.setItem(11, nav(Material.REDSTONE, "&c-16", "qty:-16", canDecrease16));
+        inventory.setItem(12, nav(Material.REDSTONE_BLOCK, "&c-1", "qty:-1", canDecrease1));
+        inventory.setItem(13, icon(material, color("&f&l" + amount + "x"),
+                List.of(
+                        color("&7Beli: &eRp " + (buy >= 0 ? money(buy * amount) : "-")),
+                        color("&7Jual: &aRp " + (sell >= 0 ? money(sell * amount) : "-")),
+                        color("&7Jumlah: &f1 - " + session.max())
+                ), "none", null));
+        inventory.setItem(14, nav(Material.GLOWSTONE_DUST, "&a+1", "qty:+1", canIncrease1));
+        inventory.setItem(15, nav(Material.GLOWSTONE, "&a+16", "qty:+16", canIncrease16));
+        inventory.setItem(16, nav(Material.GLOWSTONE_BLOCK, "&a+64", "qty:+64", canIncrease64));
+        inventory.setItem(19, icon(Material.PAPER, color("&f&l1x"), List.of(color("&7Jumlah &f1")), "qty:set:1", null));
+        inventory.setItem(20, icon(Material.PAPER, color("&f&l16x"), List.of(color("&7Jumlah &f16")), "qty:set:16", null));
+        inventory.setItem(21, icon(Material.PAPER, color("&f&l32x"), List.of(color("&7Jumlah &f32")), "qty:set:32", null));
+        inventory.setItem(22, icon(Material.PAPER, color("&f&l64x"), List.of(color("&7Jumlah &f64")), "qty:set:64", null));
+        inventory.setItem(23, icon(Material.CHEST, color("&e&lMAX"), List.of(color("&7Jumlah &f" + session.max())), "qty:set:max", null));
+        inventory.setItem(19 + 9, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
+                List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))), "buy:selected", null));
+        inventory.setItem(21 + 9, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
+                List.of(color("&7Total: &aRp " + (sell >= 0 ? money(sell * amount) : "-"))), "sell:selected", null));
+        inventory.setItem(23 + 9, icon(Material.ARROW, color("&8‹ &eKembali"),
+                List.of(color("&7Kembali ke daftar item")), "backcat", session.categoryId()));
+        inventory.setItem(25, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
         player.openInventory(inventory);
     }
 
