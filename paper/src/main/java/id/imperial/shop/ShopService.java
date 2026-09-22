@@ -955,7 +955,7 @@ public final class ShopService {
 
         EconomyResponse response = economy.withdrawPlayer(player, total);
         if (!response.transactionSuccess()) {
-            String reason = response.errorMessage == null || response.errorMessage().isBlank()
+            String reason = response.errorMessage == null || response.errorMessage.isBlank()
                     ? "Economy menolak transaksi." : response.errorMessage();
             message(player, "economy-transaction-failed", Map.of("%reason%", reason));
             sound(player, "fail");
