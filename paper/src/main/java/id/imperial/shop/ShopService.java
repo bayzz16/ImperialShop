@@ -72,7 +72,7 @@ public final class ShopService {
         prices.clear();
         categories.clear();
 
-        var config = plugin.getConfig();
+        var config = plugin.getShopConfig();
         var priceSection = config.getConfigurationSection("prices");
         if (priceSection != null) {
             for (String key : priceSection.getKeys(false)) {
@@ -155,7 +155,7 @@ public final class ShopService {
 
     String pretty(Material material) {
         if (material == null) return "Unknown";
-        String configured = plugin.getConfig().getString("display-names." + material.name());
+        String configured = plugin.getShopConfig().getString("display-names." + material.name());
         if (configured != null && !configured.isBlank()) return color(configured);
 
         StringBuilder result = new StringBuilder();
@@ -178,7 +178,7 @@ public final class ShopService {
 
     boolean canTrade(Player player, Category category, Material material) {
         if (!canAccessCategory(player, category)) return false;
-        String itemPermission = plugin.getConfig().getString(
+        String itemPermission = plugin.getShopConfig().getString(
                 "item-permissions." + category.id() + "." + material.name(), "");
         return itemPermission.isBlank() || player.hasPermission(itemPermission);
     }
@@ -242,7 +242,7 @@ public final class ShopService {
 
     private double modifier(Player player, String type) {
         double multiplier = 1.0;
-        var section = plugin.getConfig().getConfigurationSection("price-modifiers");
+        var section = plugin.getShopConfig().getConfigurationSection("price-modifiers");
         if (section == null) return multiplier;
 
         for (String id : section.getKeys(false)) {
