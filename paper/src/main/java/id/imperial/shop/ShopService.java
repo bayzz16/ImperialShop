@@ -234,16 +234,33 @@ public final class ShopService {
         return null;
     }
 
+    /**
+     * Returns the effective per-item price.
+     *
+     * ImperialShop follows EconomyShopGUI's stack-size model: the configured
+     * buy/sell price represents one displayed shop stack, while transactions
+     * operate on actual item amounts.
+     */
     double buyPrice(Player player, Material material) {
         Price price = prices.get(material);
         if (price == null || price.buy() < 0) return -1;
-        return price.buy() * modifier(player, "buy");
+        int stack = shopDisplayAmount(material);
+        return (price.buy() / stack) * modifier(player, "buy");
     }
 
     double sellPrice(Player player, Material material) {
         Price price = prices.get(material);
         if (price == null || price.sell() < 0) return -1;
-        return price.sell() * modifier(player, "sell");
+        int stack = shopDisplayAmount(material);
+        return (price.sell() / stack) * modifier(player, "sell");
+    }
+
+    double stackBuyPrice(Player player, Material material) {
+        return buyPrice(player, material) * shopDisplayAmount(material);
+    }
+
+    double stackSellPrice(Player player, Material material) {
+        return sellPrice(player, material) * shopDisplayAmount(material);
     }
 
     private double modifier(Player player, String type) {
@@ -883,6 +900,8 @@ public final class ShopService {
         long now = System.currentTimeMillis();
         long last = transactionCooldowns.getOrDefault(player.getUniqueId(), 0L);
         if (now - last < cooldown) {
+            long remaining = cooldown - (now - last);
+            message(player, "transaction-cooldown", Map.of("%time%", String.valueOf(Math.max(1, remaining))));
             sound(player, "fail");
             return false;
         }
@@ -914,7 +933,9 @@ public final class ShopService {
         if (!Double.isFinite(total) || total < 0) return false;
 
         if (!economy.has(player, total)) {
-            message(player, "not-enough-money", Map.of("%price%", "Rp " + money(total)));
+            message(player, "not-enough-money", Map.of(
+                    "%price%", "Rp " + money(total),
+                    "%balance%", "Rp " + money(economy.getBalance(player))));
             sound(player, "fail");
             return false;
         }
