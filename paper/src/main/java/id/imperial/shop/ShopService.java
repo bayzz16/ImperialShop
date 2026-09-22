@@ -699,6 +699,42 @@ public final class ShopService {
         player.openInventory(inventory);
     }
 
+    void openPreview(Player player, String categoryId, Material material) {
+        Category category = categories.get(categoryId);
+        Price price = prices.get(material);
+        if (category == null || price == null || !canTrade(player, category, material)) {
+            message(player, "no-permission");
+            return;
+        }
+
+        Inventory inventory = createGui(GuiType.CATEGORY, 27,
+                color("&8✦ &b&lɪᴛᴇᴍ &f&lᴘʀᴇᴠɪᴇᴡ &8✦"));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(color("&8› &7Kategori &8• &f" + ChatColor.stripColor(category.name())));
+        if (price.buy() >= 0) lore.add(color("&8› &7Harga beli &8• &eRp " + money(buyPrice(player, material)) + " &7/1x"));
+        if (price.sell() >= 0) lore.add(color("&8› &7Harga jual &8• &aRp " + money(sellPrice(player, material)) + " &7/1x"));
+        lore.add("");
+        lore.add(color("&7Klik &fBeli &7atau &fJual &7untuk memilih jumlah."));
+
+        inventory.setItem(13, icon(material, color("&f&l" + pretty(material)), lore, "none", null));
+        inventory.setItem(10, icon(Material.EMERALD, color("&a&lʙᴇʟɪ"),
+                List.of(color("&7Pilih jumlah pembelian")), "preview:buy", categoryId + "|" + material.name()));
+        inventory.setItem(16, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ"),
+                List.of(color("&7Pilih jumlah penjualan")), "preview:sell", categoryId + "|" + material.name()));
+        inventory.setItem(22, icon(Material.ARROW, color("&8‹ &eKembali"),
+                List.of(), "backcat", categoryId));
+        inventory.setItem(25, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        decorate(inventory);
+        inventory.setItem(10, icon(Material.EMERALD, color("&a&lʙᴇʟɪ"),
+                List.of(color("&7Pilih jumlah pembelian")), "preview:buy", categoryId + "|" + material.name()));
+        inventory.setItem(16, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ"),
+                List.of(color("&7Pilih jumlah penjualan")), "preview:sell", categoryId + "|" + material.name()));
+        inventory.setItem(22, icon(Material.ARROW, color("&8‹ &eKembali"), List.of(), "backcat", categoryId));
+        inventory.setItem(25, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        player.openInventory(inventory);
+    }
+
     void changeQuantity(Player player, int delta) {
         QuantitySession current = quantities.get(player.getUniqueId());
         if (current == null) return;
