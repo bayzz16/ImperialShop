@@ -12,6 +12,20 @@ price-modifiers:
     buy-multiplier: 0.85
     sell-multiplier: 1.15
 
+# Optional discount rules. The strongest matching rule is applied per transaction type.
+# Buy discount: 0.90 = player pays 90% of the normal buy price.
+# Sell bonus: 1.10 = player receives 110% of the normal sell price.
+# Each rule may optionally target a category or material.
+discounts:
+  vip:
+    permission: "imperialshop.discount.vip"
+    buy-multiplier: 0.95
+    sell-multiplier: 1.05
+  premium:
+    permission: "imperialshop.discount.premium"
+    buy-multiplier: 0.90
+    sell-multiplier: 1.10
+
 categories:
   blocks:
     material: "STONE"
