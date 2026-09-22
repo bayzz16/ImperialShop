@@ -133,6 +133,11 @@ public final class ShopService {
         return row * 9 + offset + column;
     }
 
+    int shopDisplayAmount(Material material) {
+        int configured = Math.max(1, plugin.getConfig().getInt("settings.shop-stack-size", 16));
+        return Math.min(configured, Math.max(1, material.getMaxStackSize()));
+    }
+
     int quantityMax() {
         return Math.max(64, plugin.getConfig().getInt("settings.quantity-max", 2304));
     }
@@ -278,7 +283,12 @@ public final class ShopService {
     }
 
     ItemStack icon(Material material, String name, List<String> lore, String action, String data) {
-        ItemStack stack = new ItemStack(material);
+        return icon(material, name, lore, action, data, 1);
+    }
+
+    ItemStack icon(Material material, String name, List<String> lore, String action, String data, int amount) {
+        int safeAmount = Math.max(1, Math.min(amount, Math.max(1, material.getMaxStackSize())));
+        ItemStack stack = new ItemStack(material, safeAmount);
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(name);
         meta.setLore(lore);
@@ -373,7 +383,7 @@ public final class ShopService {
             lore.add(color("&8• &7Klik kiri &fBeli 1"));
             lore.add(color("&8• &7Klik kanan &fJual 1"));
             lore.add(color("&8• &7Shift kanan &fJual semua"));
-            lore.add(color("&8• &7Tengah &fJumlah custom"));
+            lore.add(color("&8• &7Klik tengah &fJumlah custom"));
             lore.add(color(plugin.favorites().isFavorite(player, material)
                     ? "&d★ &fFavorit" : "&8☆ &7Belum favorit"));
 
@@ -507,19 +517,20 @@ public final class ShopService {
             Price price = prices.get(material);
 
             List<String> lore = new ArrayList<>();
+            int displayAmount = shopDisplayAmount(material);
             if (price != null && price.buy() >= 0)
-                lore.add(color("&eRp " + money(buyPrice(player, material)) + " &8• &7Beli"));
+                lore.add(color("&eRp " + money(buyPrice(player, material) * displayAmount) + " &8• &7Beli " + displayAmount + "x"));
             if (price != null && price.sell() >= 0)
-                lore.add(color("&aRp " + money(sellPrice(player, material)) + " &8• &7Jual"));
+                lore.add(color("&aRp " + money(sellPrice(player, material) * displayAmount) + " &8• &7Jual " + displayAmount + "x"));
             lore.add("");
-            lore.add(color("&8• &7Klik kiri &fBeli 1"));
-            lore.add(color("&8• &7Klik kanan &fJual 1"));
+            lore.add(color("&8• &7Klik kiri &fBeli " + displayAmount + "x"));
+            lore.add(color("&8• &7Klik kanan &fJual " + displayAmount + "x"));
             lore.add(color("&8• &7Shift kiri &fBeli 64"));
             lore.add(color("&8• &7Shift kanan &fJual semua"));
             lore.add(color("&8• &7Tengah &fJumlah custom"));
 
             inventory.setItem(centeredSlot(i - start, end - start), icon(material, color("&f&l" + pretty(material)), lore,
-                    "item", category.id() + "|" + material.name()));
+                    "item", category.id() + "|" + material.name(), displayAmount));
         }
 
         int bar = inventory.getSize() - 9;
