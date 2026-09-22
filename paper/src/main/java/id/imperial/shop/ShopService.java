@@ -645,7 +645,7 @@ public final class ShopService {
                 ), "none", null));
         inventory.setItem(14, nav(Material.GLOWSTONE_DUST, "&a+1", "qty:+1", canIncrease1));
         inventory.setItem(15, nav(Material.GLOWSTONE, "&a+16", "qty:+16", canIncrease16));
-        inventory.setItem(16, nav(Material.GLOWSTONE_BLOCK, "&a+64", "qty:+64", canIncrease64));
+        inventory.setItem(16, nav(Material.SEA_LANTERN, "&a+64", "qty:+64", canIncrease64));
 
         // Preset amounts: one click changes the selected amount.
         inventory.setItem(19, icon(Material.PAPER, color("&f&l1x"),
@@ -682,7 +682,7 @@ public final class ShopService {
                 ), "none", null));
         inventory.setItem(14, nav(Material.GLOWSTONE_DUST, "&a+1", "qty:+1", canIncrease1));
         inventory.setItem(15, nav(Material.GLOWSTONE, "&a+16", "qty:+16", canIncrease16));
-        inventory.setItem(16, nav(Material.GLOWSTONE_BLOCK, "&a+64", "qty:+64", canIncrease64));
+        inventory.setItem(16, nav(Material.SEA_LANTERN, "&a+64", "qty:+64", canIncrease64));
         inventory.setItem(19, icon(Material.PAPER, color("&f&l1x"), List.of(color("&7Jumlah &f1")), "qty:set:1", null));
         inventory.setItem(20, icon(Material.PAPER, color("&f&l16x"), List.of(color("&7Jumlah &f16")), "qty:set:16", null));
         inventory.setItem(21, icon(Material.PAPER, color("&f&l32x"), List.of(color("&7Jumlah &f32")), "qty:set:32", null));
