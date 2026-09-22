@@ -684,18 +684,18 @@ public final class ShopService {
         inventory.setItem(14, nav(Material.GLOWSTONE_DUST, "&a+1", "qty:+1", canIncrease1));
         inventory.setItem(15, nav(Material.GLOWSTONE, "&a+16", "qty:+16", canIncrease16));
         inventory.setItem(16, nav(Material.SEA_LANTERN, "&a+64", "qty:+64", canIncrease64));
+        inventory.setItem(18, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
+                List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))), "buy:selected", null));
         inventory.setItem(19, icon(Material.PAPER, color("&f&l1x"), List.of(color("&7Jumlah &f1")), "qty:set:1", null));
         inventory.setItem(20, icon(Material.PAPER, color("&f&l16x"), List.of(color("&7Jumlah &f16")), "qty:set:16", null));
         inventory.setItem(21, icon(Material.PAPER, color("&f&l32x"), List.of(color("&7Jumlah &f32")), "qty:set:32", null));
         inventory.setItem(22, icon(Material.PAPER, color("&f&l64x"), List.of(color("&7Jumlah &f64")), "qty:set:64", null));
         inventory.setItem(23, icon(Material.CHEST, color("&e&lMAX"), List.of(color("&7Jumlah &f" + session.max())), "qty:set:max", null));
-        inventory.setItem(19, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
-                List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))), "buy:selected", null));
-        inventory.setItem(21, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
+        inventory.setItem(20, icon(Material.GOLD_INGOT, color("&6&lᴊᴜᴀʟ " + amount + "x"),
                 List.of(color("&7Total: &aRp " + (sell >= 0 ? money(sell * amount) : "-"))), "sell:selected", null));
-        inventory.setItem(23, icon(Material.ARROW, color("&8‹ &eKembali"),
+        inventory.setItem(24, icon(Material.ARROW, color("&8‹ &eKembali"),
                 List.of(color("&7Kembali ke daftar item")), "backcat", session.categoryId()));
-        inventory.setItem(25, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
+        inventory.setItem(26, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
         player.openInventory(inventory);
     }
 
@@ -1190,6 +1190,14 @@ public final class ShopService {
                 player.getWorld().dropItemNaturally(player.getLocation(), stack);
             }
         }
+    }
+
+    void cleanup(Player player) {
+        UUID uuid = player.getUniqueId();
+        quantities.remove(uuid);
+        pendingTransactions.remove(uuid);
+        transactionCooldowns.remove(uuid);
+        returnSellInput(player);
     }
 
     private ItemStack nav(Material material, String name, String action, boolean enabled) {
