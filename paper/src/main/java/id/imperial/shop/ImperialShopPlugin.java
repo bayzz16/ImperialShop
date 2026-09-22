@@ -4,6 +4,10 @@ import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
 import org.bukkit.Material;
 import org.bukkit.ChatColor;
 
@@ -13,10 +17,13 @@ public final class ImperialShopPlugin extends JavaPlugin {
     private ShopService shop;
     private TransactionHistory history;
     private FavoritesStore favorites;
+    private File shopFile;
+    private FileConfiguration shopConfig;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        saveDefaultShops();
 
         getServer().getMessenger().registerIncomingPluginChannel(
                 this, VelocityBridgeListener.CHANNEL, new VelocityBridgeListener(this));
@@ -68,6 +75,27 @@ public final class ImperialShopPlugin extends JavaPlugin {
         return configured == null ? "" : configured;
     }
 
+    private void saveDefaultShops() {
+        if (!getDataFolder().exists() && !getDataFolder().mkdirs()) {
+            getLogger().warning("Could not create plugin data folder.");
+        }
+        shopFile = new File(getDataFolder(), "shops.yml");
+        if (!shopFile.exists()) {
+            saveResource("shops.yml", false);
+        }
+        shopConfig = YamlConfiguration.loadConfiguration(shopFile);
+    }
+
+    FileConfiguration getShopConfig() {
+        if (shopConfig == null) saveDefaultShops();
+        return shopConfig;
+    }
+
+    void reloadShops() {
+        if (shopFile == null) saveDefaultShops();
+        shopConfig = YamlConfiguration.loadConfiguration(shopFile);
+    }
+
     TransactionHistory history() { return history; }
     FavoritesStore favorites() { return favorites; }
 
@@ -81,6 +109,7 @@ public final class ImperialShopPlugin extends JavaPlugin {
 
     public void reloadPlugin() {
         reloadConfig();
+        reloadShops();
         if (shop != null) shop.reload();
     }
 
