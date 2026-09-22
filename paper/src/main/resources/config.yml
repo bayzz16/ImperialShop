@@ -40,6 +40,7 @@ messages:
   no-permission: "&c✦ &fAkses ditolak &8• &7Kamu tidak memiliki izin untuk item ini."
   economy-missing: "&c✦ &fEconomy belum tersedia."
   not-enough-money: "&c✦ &fSaldo tidak mencukupi &8• &7Dibutuhkan &e%price%"
+  economy-transaction-failed: "&c✦ &fTransaksi ditolak economy &8• &7%reason%"
   inventory-full: "&c✦ &fInventory penuh &8• &7Sediakan ruang terlebih dahulu."
   bought: "&a✦ &fPembelian berhasil &8• &7%amount%x %item% &8• &e%price%"
   sold: "&a✦ &fPenjualan berhasil &8• &7%amount%x %item% &8• &a%price%"
