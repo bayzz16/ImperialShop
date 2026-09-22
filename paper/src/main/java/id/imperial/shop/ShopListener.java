@@ -27,6 +27,28 @@ public final class ShopListener implements Listener {
         Inventory top = event.getView().getTopInventory();
         if (!(top.getHolder() instanceof ShopService.ShopHolder holder)) return;
 
+        if (holder.type() == ShopService.GuiType.SEARCH) {
+            int rawSlot = event.getRawSlot();
+            if (rawSlot == 2) {
+                event.setCancelled(true);
+                ItemStack result = top.getItem(2);
+                if (result != null && result.hasItemMeta()) {
+                    String query = result.getItemMeta().getDisplayName();
+                    query = org.bukkit.ChatColor.stripColor(query == null ? "" : query).trim();
+                    if (!query.isBlank() && !query.equalsIgnoreCase("Ketik nama item...")) {
+                        String finalQuery = query;
+                        later(player, () -> shop.openSearch(player, finalQuery, 0));
+                    } else {
+                        player.sendMessage("§c✦ §fMasukkan nama item/material terlebih dahulu.");
+                    }
+                }
+                return;
+            }
+            if (rawSlot == 0 || rawSlot == 1 || rawSlot == 3) return;
+            event.setCancelled(true);
+            return;
+        }
+
         if (holder.type() == ShopService.GuiType.SELL_INPUT) {
             int rawSlot = event.getRawSlot();
 
@@ -111,7 +133,7 @@ public final class ShopListener implements Listener {
         }
 
         if (action.equals("search")) {
-            player.sendMessage("§bGunakan: §f/shop search <kata>");
+            later(player, () -> shop.openSearchInput(player));
             return;
         }
 
