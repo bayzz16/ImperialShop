@@ -659,6 +659,7 @@ public final class ShopService {
                 List.of(color("&7Jumlah &f64")), "qty:set:64", null));
         inventory.setItem(22, icon(Material.CHEST, color("&e&lMAX"),
                 List.of(color("&7Jumlah &f" + session.max())), "qty:set:max", null));
+        inventory.setItem(23, icon(Material.BARRIER, color("&c&lᴛᴜᴛᴜᴘ"), List.of(), "close", null));
         inventory.setItem(24, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
                 List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))),
                 "buy:selected", null));
