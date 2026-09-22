@@ -133,6 +133,25 @@ public final class ShopListener implements Listener {
             return;
         }
 
+        if (action.equals("preview") && itemData != null) {
+            String[] parts = itemData.split("\\|", 2);
+            if (parts.length == 2) {
+                Material material = Material.matchMaterial(parts[1]);
+                if (material != null) later(player, () -> shop.openPreview(player, parts[0], material));
+            }
+            return;
+        }
+
+        if (action.startsWith("preview:") && itemData != null) {
+            String[] parts = itemData.split("\\|", 2);
+            if (parts.length == 2) {
+                Material material = Material.matchMaterial(parts[1]);
+                String actionType = action.substring("preview:".length());
+                if (material != null) later(player, () -> shop.openQuantity(player, parts[0], material));
+            }
+            return;
+        }
+
         if (action.equals("category") && itemData != null) {
             later(player, () -> shop.openCategory(player, itemData));
             return;
