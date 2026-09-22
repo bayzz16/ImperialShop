@@ -649,15 +649,15 @@ public final class ShopService {
 
         // Preset amounts: one click changes the selected amount.
         inventory.setItem(19, icon(Material.PAPER, color("&f&l1x"),
-                List.of(color("&7Atur jumlah menjadi &f1")), "qty:set:1", true));
+                List.of(color("&7Atur jumlah menjadi &f1")), "qty:set:1", null));
         inventory.setItem(20, icon(Material.PAPER, color("&f&l16x"),
-                List.of(color("&7Atur jumlah menjadi &f16")), "qty:set:16", true));
+                List.of(color("&7Atur jumlah menjadi &f16")), "qty:set:16", null));
         inventory.setItem(21, icon(Material.PAPER, color("&f&l32x"),
-                List.of(color("&7Atur jumlah menjadi &f32")), "qty:set:32", true));
+                List.of(color("&7Atur jumlah menjadi &f32")), "qty:set:32", null));
         inventory.setItem(22, icon(Material.PAPER, color("&f&l64x"),
-                List.of(color("&7Atur jumlah menjadi &f64")), "qty:set:64", true));
+                List.of(color("&7Atur jumlah menjadi &f64")), "qty:set:64", null));
         inventory.setItem(23, icon(Material.CHEST, color("&e&lMAX"),
-                List.of(color("&7Atur jumlah menjadi &f" + session.max())), "qty:set:max", true));
+                List.of(color("&7Atur jumlah menjadi &f" + session.max())), "qty:set:max", null));
 
         inventory.setItem(19 + 9, icon(Material.EMERALD, color("&a&lʙᴇʟɪ " + amount + "x"),
                 List.of(color("&7Total: &eRp " + (buy >= 0 ? money(buy * amount) : "-"))),
