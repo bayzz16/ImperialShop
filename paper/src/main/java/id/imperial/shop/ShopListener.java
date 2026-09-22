@@ -238,9 +238,9 @@ public final class ShopListener implements Listener {
             } else if (click == ClickType.MIDDLE) {
                 later(player, () -> shop.openQuantity(player, parts[0], material));
             } else if (click == ClickType.LEFT) {
-                shop.buy(player, material, 1);
+                shop.buy(player, material, shop.shopDisplayAmount(material));
             } else if (click == ClickType.RIGHT) {
-                shop.sellMaterial(player, material, 1);
+                shop.sellMaterial(player, material, shop.shopDisplayAmount(material));
             } else if (click == ClickType.SHIFT_RIGHT) {
                 shop.sellMaterial(player, material, Integer.MAX_VALUE);
             }
