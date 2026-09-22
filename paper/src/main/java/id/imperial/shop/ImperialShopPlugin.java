@@ -91,7 +91,7 @@ public final class ImperialShopPlugin extends JavaPlugin {
         return shopConfig;
     }
 
-    void reloadShops() {
+    void saveShops() {\n        if (shopFile == null) saveDefaultShops();\n        try {\n            shopConfig.save(shopFile);\n        } catch (java.io.IOException exception) {\n            getLogger().log(java.util.logging.Level.SEVERE, "Could not save shops.yml.", exception);\n        }\n    }\n\n    void reloadShops() {
         if (shopFile == null) saveDefaultShops();
         shopConfig = YamlConfiguration.loadConfiguration(shopFile);
     }
