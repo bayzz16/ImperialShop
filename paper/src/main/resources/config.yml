@@ -1,7 +1,7 @@
 economy:
   # imperial = ImperialShop owns the Vault economy provider.
   # external = use another plugin registered through Vault.
-  provider: "imperial"
+  provider: "external"
   currency-name-singular: "Rupiah"
   currency-name-plural: "Rupiah"
   storage:
@@ -20,6 +20,7 @@ settings:
   sell-size: 54
   page-size: 45
   quantity-max: 2304
+  shop-stack-size: 16
   filler-material: "GRAY_STAINED_GLASS_PANE"
   fill-empty-slots: true
   sounds: true
