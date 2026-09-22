@@ -24,7 +24,9 @@ settings:
   fill-empty-slots: true
   sounds: true
   # Anti-double-click / transaction spam protection.
-  transaction-cooldown-ms: 250\n  # Transaksi dengan jumlah di bawah angka ini langsung diproses; jumlah lebih besar meminta konfirmasi.\n  confirmation-threshold: 16
+  transaction-cooldown-ms: 250
+  # Transaksi dengan jumlah di bawah angka ini langsung diproses; jumlah lebih besar meminta konfirmasi.
+  confirmation-threshold: 16
 
 gui:
   main-title: "&8✦ &b&lɪᴍᴘᴇʀɪᴀʟ &f&lꜱʜᴏᴘ &8✦"
