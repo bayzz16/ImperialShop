@@ -24,11 +24,12 @@ public final class ShopService {
     final Map<Material, Price> prices = new EnumMap<>(Material.class);
     final Map<String, Category> categories = new LinkedHashMap<>();
     private final Map<UUID, QuantitySession> quantities = new HashMap<>();
+    private final Map<UUID, PendingTransaction> pendingTransactions = new HashMap<>();
     private final Map<UUID, Inventory> sellInputs = new HashMap<>();
     private final Map<UUID, Long> transactionCooldowns = new HashMap<>();
 
     enum GuiType {
-        MAIN, CATEGORY, QUANTITY, SELL_LIST, SELL_INPUT
+        MAIN, CATEGORY, QUANTITY, CONFIRM, SELL_LIST, SELL_INPUT
     }
 
     static final class ShopHolder implements org.bukkit.inventory.InventoryHolder {
@@ -729,6 +730,66 @@ public final class ShopService {
         quantities.remove(player.getUniqueId());
     }
 
+    void openConfirmation(Player player, String action, String categoryId, Material material, int amount) {
+        if (amount < 1) return;
+        int threshold = Math.max(1, plugin.getConfig().getInt("settings.confirmation-threshold", 16));
+        if (amount < threshold) {
+            if ("buy".equals(action)) buy(player, material, amount);
+            else sellMaterial(player, material, amount);
+            return;
+        }
+        Category category = categories.get(categoryId);
+        if (category == null || !canTrade(player, category, material)) return;
+        Price price = prices.get(material);
+        if (price == null) return;
+        double unit = "buy".equals(action) ? buyPrice(player, material) : sellPrice(player, material);
+        if (unit < 0 || !Double.isFinite(unit)) return;
+        pendingTransactions.put(player.getUniqueId(), new PendingTransaction(action, categoryId, material, amount));
+        renderConfirmation(player, unit * amount);
+    }
+
+    private void renderConfirmation(Player player, double total) {
+        PendingTransaction pending = pendingTransactions.get(player.getUniqueId());
+        if (pending == null) return;
+        Inventory inventory = createGui(GuiType.CONFIRM, 27, color("&8✦ &e&lKONFIRMASI TRANSAKSI &8✦"));
+        Material material = pending.material();
+        boolean buy = "buy".equals(pending.action());
+        inventory.setItem(11, icon(material, color("&f&l" + pretty(material)), List.of(
+                color("&7Jumlah &8• &f" + pending.amount() + "x"),
+                color("&7Total &8• &" + (buy ? "e" : "a") + "Rp " + money(total)),
+                "",
+                color(buy ? "&7Saldo akan dikurangi." : "&7Item akan diambil dari inventory.")
+        ), "none", null));
+        inventory.setItem(13, icon(buy ? Material.EMERALD : Material.GOLD_INGOT,
+                color(buy ? "&a&lKONFIRMASI BELI" : "&6&lKONFIRMASI JUAL"),
+                List.of(color("&7Klik untuk melanjutkan transaksi.")), "confirm", null));
+        inventory.setItem(15, icon(Material.RED_CONCRETE, color("&c&lBATAL"),
+                List.of(color("&7Kembali tanpa transaksi.")), "cancel", null));
+        inventory.setItem(22, icon(Material.BARRIER, color("&8TUTUP"), List.of(), "cancel", null));
+        decorate(inventory);
+        inventory.setItem(11, icon(material, color("&f&l" + pretty(material)), List.of(
+                color("&7Jumlah &8• &f" + pending.amount() + "x"),
+                color("&7Total &8• &" + (buy ? "e" : "a") + "Rp " + money(total))
+        ), "none", null));
+        inventory.setItem(13, icon(buy ? Material.EMERALD : Material.GOLD_INGOT,
+                color(buy ? "&a&lKONFIRMASI BELI" : "&6&lKONFIRMASI JUAL"),
+                List.of(color("&7Klik untuk melanjutkan transaksi.")), "confirm", null));
+        inventory.setItem(15, icon(Material.RED_CONCRETE, color("&c&lBATAL"), List.of(), "cancel", null));
+        inventory.setItem(22, icon(Material.BARRIER, color("&8TUTUP"), List.of(), "cancel", null));
+        player.openInventory(inventory);
+    }
+
+    void confirmPending(Player player) {
+        PendingTransaction pending = pendingTransactions.remove(player.getUniqueId());
+        if (pending == null) return;
+        if ("buy".equals(pending.action())) buy(player, pending.material(), pending.amount());
+        else sellMaterial(player, pending.material(), pending.amount());
+    }
+
+    void clearPending(Player player) {
+        pendingTransactions.remove(player.getUniqueId());
+    }
+
     private long transactionCooldownMillis() {
         return Math.max(0L, plugin.getConfig().getLong("settings.transaction-cooldown-ms", 250L));
     }
@@ -1123,5 +1184,7 @@ public final class ShopService {
     record Price(double buy, double sell, int minBuy, int minSell, int maxBuy, int maxSell) {}
     record Category(String id, String name, Material icon, String permission, List<Material> items) {}
     record QuantitySession(String categoryId, Material material, int amount, int max) {}
+
+    record PendingTransaction(String action, String categoryId, Material material, int amount) {}
     record SlotBackup(int slot, ItemStack stack) {}
 }
