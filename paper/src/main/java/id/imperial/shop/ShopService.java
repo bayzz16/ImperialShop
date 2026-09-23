@@ -774,6 +774,13 @@ public final class ShopService {
                 color("&8✦ &b&lɪᴛᴇᴍ &f&lᴘʀᴇᴠɪᴇᴡ &8✦"));
 
         List<String> lore = new ArrayList<>();
+        int shopAmount = shopDisplayAmount(material);
+        lore.add(color("&8› &7Paket shop &8• &f" + shopAmount + "x"));
+        lore.add(color("&8› &7Klik kiri &8• &aBeli " + shopAmount + "x"));
+        lore.add(color("&8› &7Klik kanan &8• &6Jual " + shopAmount + "x"));
+        lore.add(color("&8› &7Shift + klik kiri &8• &aBeli 64x"));
+        lore.add(color("&8› &7Shift + klik kanan &8• &6Jual semua"));
+        lore.add(color("&8› &7Klik tengah &8• &fAtur jumlah"));
         lore.add(color("&8› &7Kategori &8• &f" + ChatColor.stripColor(category.name())));
         if (price.buy() >= 0) lore.add(color("&8› &7Harga beli &8• &eRp " + money(buyPrice(player, material)) + " &7/1x"));
         if (price.sell() >= 0) lore.add(color("&8› &7Harga jual &8• &aRp " + money(sellPrice(player, material)) + " &7/1x"));
@@ -913,8 +920,14 @@ public final class ShopService {
     boolean buy(Player player, Material material, int amount) {
         Category category = categoryFor(material);
         Price price = prices.get(material);
-        if (category == null || price == null || amount < 1 || price.buy() < 0 || !canTrade(player, category, material)) {
+        if (category == null || price == null || amount < 1 || price.buy() < 0) {
+            message(player, "item-not-buyable");
+            sound(player, "fail");
+            return false;
+        }
+        if (!canTrade(player, category, material)) {
             message(player, "no-permission");
+            sound(player, "fail");
             return false;
         }
         if (amount < price.minBuy()) {
@@ -930,7 +943,11 @@ public final class ShopService {
         if (!tryTransaction(player)) return false;
         double unit = buyPrice(player, material);
         double total = unit * amount;
-        if (!Double.isFinite(total) || total < 0) return false;
+        if (!Double.isFinite(total) || total < 0) {
+            message(player, "economy-transaction-failed", Map.of("%reason%", "Harga transaksi tidak valid."));
+            sound(player, "fail");
+            return false;
+        }
 
         double balance = economy.getBalance(player);
         if (!Double.isFinite(balance) || balance < 0) {
@@ -949,6 +966,7 @@ public final class ShopService {
         }
         if (space(player, material) < amount) {
             message(player, "inventory-full");
+            transactionFeedback(player, false, "BUY", material, amount, total);
             sound(player, "fail");
             return false;
         }
