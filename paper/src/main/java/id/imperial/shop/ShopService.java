@@ -1256,7 +1256,6 @@ public final class ShopService {
             plugin.history().record(player, "SELL", stack.getType(), stack.getAmount(),
                     sellPrice(player, stack.getType()) * stack.getAmount());
             recordSold(player, stack.getType(), stack.getAmount());
-            recordSold(player, stack.getType(), stack.getAmount());
         }
         sound(player, "sell");
         return total;
@@ -1345,6 +1344,7 @@ public final class ShopService {
             ItemStack stack = backup.stack();
             plugin.history().record(player, "SELL", stack.getType(), stack.getAmount(),
                     sellPrice(player, stack.getType()) * stack.getAmount());
+            recordSold(player, stack.getType(), stack.getAmount());
         }
         sound(player, "sell");
         return total;
