@@ -11,6 +11,7 @@ final class SharedEconomyStorage {
     private final ImperialShopPlugin plugin;
     private final HikariDataSource dataSource;
     private final String table;
+    private static final java.math.BigDecimal MAX_BALANCE = new java.math.BigDecimal("999999999999999999.99");
 
     SharedEconomyStorage(ImperialShopPlugin plugin) throws SQLException {
         this.plugin = plugin;
@@ -82,6 +83,7 @@ final class SharedEconomyStorage {
                     }
                 }
                 java.math.BigDecimal next=current.add(value).setScale(2,java.math.RoundingMode.HALF_UP);
+                if (next.compareTo(MAX_BALANCE) > 0) throw new SQLException("Balance exceeds DECIMAL(20,2) capacity.");
                 try (PreparedStatement p=c.prepareStatement("UPDATE "+table+" SET balance=? WHERE uuid=?")) {
                     p.setBigDecimal(1,next); p.setString(2,uuid.toString()); p.executeUpdate();
                 }
@@ -112,6 +114,7 @@ final class SharedEconomyStorage {
                 }
                 if (current.compareTo(value)<0) { c.rollback(); return Double.NaN; }
                 java.math.BigDecimal next=current.subtract(value).setScale(2,java.math.RoundingMode.HALF_UP);
+                if (next.signum() < 0) throw new SQLException("Balance cannot be negative.");
                 try (PreparedStatement p=c.prepareStatement("UPDATE "+table+" SET balance=? WHERE uuid=?")) {
                     p.setBigDecimal(1,next); p.setString(2,uuid.toString()); p.executeUpdate();
                 }
