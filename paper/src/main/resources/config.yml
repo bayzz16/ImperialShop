@@ -43,38 +43,38 @@ settings:
 # HARD ECONOMY: reward is paid only when the player was hit by that exact mob
 # during the fight. Instant/safe kills pay nothing. Values are deliberately small.
 mob-rewards:
-  ZOMBIE: 5
-  HUSK: 6
-  DROWNED: 6
-  ZOMBIFIED_PIGLIN: 5
-  SKELETON: 5
-  STRAY: 7
-  BOGGED: 7
-  SPIDER: 4
-  CAVE_SPIDER: 7
-  CREEPER: 8
-  ENDERMAN: 12
-  WITCH: 12
-  SLIME: 3
-  MAGMA_CUBE: 7
-  PHANTOM: 8
-  PILLAGER: 8
-  VINDICATOR: 12
-  EVOKER: 20
-  RAVAGER: 25
-  GUARDIAN: 10
-  ELDER_GUARDIAN: 35
-  BLAZE: 10
-  GHAST: 15
-  HOGLIN: 10
-  ZOGLIN: 12
-  PIGLIN_BRUTE: 15
-  WITHER_SKELETON: 12
-  SHULKER: 15
-  SILVERFISH: 3
-  ENDERMITE: 4
-  BREEZE: 15
-  WARDEN: 50
+  ZOMBIE: 10
+  HUSK: 12
+  DROWNED: 12
+  ZOMBIFIED_PIGLIN: 10
+  SKELETON: 10
+  STRAY: 14
+  BOGGED: 14
+  SPIDER: 8
+  CAVE_SPIDER: 14
+  CREEPER: 16
+  ENDERMAN: 24
+  WITCH: 24
+  SLIME: 6
+  MAGMA_CUBE: 14
+  PHANTOM: 16
+  PILLAGER: 16
+  VINDICATOR: 24
+  EVOKER: 40
+  RAVAGER: 50
+  GUARDIAN: 20
+  ELDER_GUARDIAN: 70
+  BLAZE: 20
+  GHAST: 30
+  HOGLIN: 20
+  ZOGLIN: 24
+  PIGLIN_BRUTE: 30
+  WITHER_SKELETON: 24
+  SHULKER: 30
+  SILVERFISH: 6
+  ENDERMITE: 8
+  BREEZE: 30
+  WARDEN: 100
 
 gui:
   main-title: "&8✦ &b&lɪᴍᴘᴇʀɪᴀʟ &f&lꜱʜᴏᴘ &8✦"
