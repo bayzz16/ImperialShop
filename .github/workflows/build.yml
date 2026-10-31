@@ -21,6 +21,28 @@ jobs:
         run: |
           test -f paper/target/imperialShop.jar
           test -f velocity/target/imperialShop-velocity.jar
+      - name: Validate and package resource packs
+        run: |
+          test -f packs/java/pack.mcmeta
+          test -f packs/java/assets/minecraft/textures/item/paper.png
+          test -f packs/bedrock/manifest.json
+          test -f packs/bedrock/textures/item_texture.json
+          test -f packs/bedrock/textures/items/paper.png
+          mkdir -p dist
+          (cd packs/java && zip -qr ../../dist/imperialshop-java-pack.zip .)
+          (cd packs/bedrock && zip -qr ../../dist/imperialshop-bedrock-pack.mcpack .)
+      - name: Upload Java resource pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: imperialshop-java-resource-pack
+          path: dist/imperialshop-java-pack.zip
+          if-no-files-found: error
+      - name: Upload Bedrock resource pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: imperialshop-bedrock-resource-pack
+          path: dist/imperialshop-bedrock-pack.mcpack
+          if-no-files-found: error
       - name: Upload Paper/Purpur JAR
         uses: actions/upload-artifact@v4
         with:
