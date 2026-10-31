@@ -30,6 +30,7 @@ final class ImperialEconomy implements Economy {
     private final Map<UUID, Double> balances = new ConcurrentHashMap<>();
     private final File file;
     private final AtomicBoolean dirty = new AtomicBoolean(false);
+    private SharedEconomyStorage sharedStorage;
     private volatile boolean enabled;
 
     ImperialEconomy(ImperialShopPlugin plugin) {
@@ -38,6 +39,18 @@ final class ImperialEconomy implements Economy {
     }
 
     void load() {
+        if (plugin.getConfig().getBoolean("economy.storage.mysql.enabled", false)) {
+            try {
+                sharedStorage = new SharedEconomyStorage(plugin);
+                enabled = true;
+                plugin.getLogger().info("Imperial Economy connected to shared MySQL/MariaDB storage.");
+            } catch (Exception exception) {
+                plugin.getLogger().severe("Shared economy database is enabled but unavailable. Economy is fail-closed; check database settings.");
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Shared economy initialization failed.", exception);
+                enabled = false;
+            }
+            return;
+        }
         if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
             plugin.getLogger().warning("Could not create ImperialShop data directory.");
         }
@@ -68,13 +81,15 @@ final class ImperialEconomy implements Economy {
     }
 
     void startAutosave() {
+        if (sharedStorage != null) return;
         long interval = Math.max(100L, plugin.getConfig().getLong("economy.storage.autosave-ticks", 600L));
         plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, this::saveIfDirty, interval, interval);
     }
 
     void shutdown() {
         enabled = false;
-        saveNow();
+        if (sharedStorage != null) { sharedStorage.close(); sharedStorage = null; }
+        else saveNow();
         balances.clear();
     }
 
@@ -88,7 +103,15 @@ final class ImperialEconomy implements Economy {
     }
 
     private double balance(UUID uuid) {
-        return uuid == null ? 0.0 : Math.max(0.0, balances.getOrDefault(uuid, 0.0));
+        if (uuid == null) return 0.0;
+        if (sharedStorage != null) {
+            try { return sharedStorage.balance(uuid); }
+            catch (Exception exception) {
+                plugin.getLogger().warning("Shared economy balance lookup failed; returning zero.");
+                return 0.0;
+            }
+        }
+        return Math.max(0.0, balances.getOrDefault(uuid, 0.0));
     }
 
     private EconomyResponse failure(double amount, UUID uuid, String message) {
@@ -112,12 +135,14 @@ final class ImperialEconomy implements Economy {
     }
 
     private void saveIfDirty() {
+        if (sharedStorage != null) return;
         if (dirty.compareAndSet(true, false)) {
             saveSnapshot();
         }
     }
 
     private void saveNow() {
+        if (sharedStorage != null) return;
         dirty.set(false);
         saveSnapshot();
     }
@@ -258,6 +283,16 @@ final class ImperialEconomy implements Economy {
         if (uuid == null) return failure(amount, null, "Invalid player.");
         amount = normalize(amount);
         if (amount < 0) return failure(amount, uuid, "Amount must not be negative.");
+        if (sharedStorage != null) {
+            try {
+                double next = sharedStorage.withdraw(uuid, amount);
+                if (Double.isNaN(next)) return failure(amount, uuid, "Insufficient funds.");
+                return success(amount, uuid, next);
+            } catch (Exception exception) {
+                plugin.getLogger().warning("Shared economy withdrawal failed; transaction rejected.");
+                return failure(amount, uuid, "Shared economy storage unavailable; transaction rejected.");
+            }
+        }
         double current = balance(uuid);
         if (current < amount) return failure(amount, uuid, "Insufficient funds.");
         double next = normalize(current - amount);
@@ -289,6 +324,13 @@ final class ImperialEconomy implements Economy {
         if (uuid == null) return failure(amount, null, "Invalid player.");
         amount = normalize(amount);
         if (amount < 0) return failure(amount, uuid, "Amount must not be negative.");
+        if (sharedStorage != null) {
+            try { return success(amount, uuid, sharedStorage.deposit(uuid, amount)); }
+            catch (Exception exception) {
+                plugin.getLogger().warning("Shared economy deposit failed; transaction rejected.");
+                return failure(amount, uuid, "Shared economy storage unavailable; transaction rejected.");
+            }
+        }
         double next = normalize(balance(uuid) + amount);
         balances.put(uuid, next);
         markDirty();
@@ -378,6 +420,10 @@ final class ImperialEconomy implements Economy {
     @Override
     public boolean createPlayerAccount(OfflinePlayer player) {
         if (player == null) return false;
+        if (sharedStorage != null) {
+            try { sharedStorage.createAccount(player.getUniqueId()); return true; }
+            catch (Exception exception) { return false; }
+        }
         balances.putIfAbsent(player.getUniqueId(), 0.0);
         return true;
     }
