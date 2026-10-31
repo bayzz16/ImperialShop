@@ -21,6 +21,8 @@ jobs:
         run: |
           test -f paper/target/imperialShop.jar
           test -f velocity/target/imperialShop-velocity.jar
+      - name: Validate shop price/category configuration
+        run: python scripts/validate_shop.py
       - name: Validate and package resource packs
         run: |
           test -f packs/java/pack.mcmeta
