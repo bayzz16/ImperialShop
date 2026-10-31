@@ -36,6 +36,7 @@ public final class ShopService {
     private final Object sellWindowSaveLock = new Object();
     private long sellWindowSaveVersion;
     private long persistedSellWindowSaveVersion;
+    private boolean sellWindowSaveScheduled;
     private final Path sellWindowFile;
 
     enum GuiType {
@@ -1011,9 +1012,16 @@ public final class ShopService {
     }
 
     private void scheduleSellWindowSave() {
-        final String snapshot = sellWindowSnapshot();
-        final long version = ++sellWindowSaveVersion;
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writeSellWindowSnapshot(snapshot, version));
+        // Coalesce bursts of sales into one disk write rather than spawning an async task per item stack.
+        if (sellWindowSaveScheduled) return;
+        sellWindowSaveScheduled = true;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            sellWindowSaveScheduled = false;
+            final String snapshot = sellWindowSnapshot();
+            final long version = ++sellWindowSaveVersion;
+            Bukkit.getScheduler().runTaskAsynchronously(plugin,
+                    () -> writeSellWindowSnapshot(snapshot, version));
+        }, 20L);
     }
 
     private void writeSellWindowSnapshot(String snapshot, long version) {
