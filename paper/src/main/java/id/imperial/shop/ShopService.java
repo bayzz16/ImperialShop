@@ -1155,7 +1155,7 @@ public final class ShopService {
         Price price = prices.get(material);
 
         if (category == null || price == null || price.sell() < 0 || requested < 1) return 0;
-        if (bulkSellDisabled(material) && ignoreMaxSell) {
+        if (bulkSellDisabled(material) && (ignoreMaxSell || requested == Integer.MAX_VALUE)) {
             player.sendMessage("§c✦ §fItem ini tidak bisa dijual melalui penjualan massal.");
             return 0;
         }
