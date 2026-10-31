@@ -66,6 +66,7 @@ public final class ImperialShopPlugin extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new ShopListener(shop), this);
+        getServer().getPluginManager().registerEvents(new MobRewardListener(this, economy), this);
         getLogger().info("ImperialShop 2.1.0 enabled for Paper/Purpur 1.21.x.");
     }
 
