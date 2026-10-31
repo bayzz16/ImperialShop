@@ -53,8 +53,13 @@ ImperialShop is a custom Indonesian-style server shop system inspired by the wor
 ## Build artifacts
 - Paper/Purpur: paper/target/imperialShop.jar
 - Velocity: velocity/target/imperialShop-velocity.jar
+- Java resource pack: imperialshop-java-pack.zip (GitHub Actions artifact)
+- Bedrock resource pack: imperialshop-bedrock-pack.mcpack (GitHub Actions artifact)
 
-The GitHub Actions workflow performs a clean Maven build and explicitly verifies both artifact names before uploading them.
+The GitHub Actions workflow performs a clean Maven build, verifies both plugin artifact names, validates the resource-pack files, packages Java/Bedrock packs, and uploads the artifacts.
+
+## Resource-pack / PNG scope
+The current Beach-Paper packs contain one custom PNG texture for the vanilla **Paper** item, shared by the Java and Bedrock pack folders. They do **not** skin the whole inventory GUI or replace every shop-category icon; shop menus still use Minecraft item icons and text. The packs are version-specific (Java 1.21.1 / pack format 34, Bedrock 1.20+). Download the pack artifacts from a successful GitHub Actions run to install them.
 
 ## Design boundary
 ImperialShop is its own implementation. It uses the documented EconomyShopGUI feature set as a functional reference, but it does not depend on or copy EconomyShopGUI code.
