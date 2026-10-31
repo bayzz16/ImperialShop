@@ -63,6 +63,22 @@ categories:
     material: "COOKED_BEEF"
     name: "&6Food"
     items: [BREAD, APPLE, CARROT, POTATO, BAKED_POTATO, COOKED_BEEF, COOKED_PORKCHOP, COOKED_CHICKEN, COOKED_MUTTON, COOKED_RABBIT, COOKED_COD, COOKED_SALMON, GOLDEN_CARROT, PUMPKIN_PIE, COOKIE, CAKE]
+  building-decor:
+    material: "WHITE_WOOL"
+    name: "&fBuilding & Decor"
+    items: [WHITE_WOOL, BLACK_WOOL, RED_WOOL, BLUE_WOOL, GREEN_WOOL, YELLOW_WOOL, ORANGE_WOOL, PURPLE_WOOL, CYAN_WOOL, PINK_WOOL, WHITE_CONCRETE, BLACK_CONCRETE, RED_CONCRETE, BLUE_CONCRETE, WHITE_TERRACOTTA, ORANGE_TERRACOTTA, WHITE_STAINED_GLASS, BLACK_STAINED_GLASS, WHITE_CARPET, SCAFFOLDING, LADDER, OAK_FENCE, OAK_FENCE_GATE, OAK_DOOR, OAK_TRAPDOOR, WHITE_BED]
+  tools:
+    material: "IRON_PICKAXE"
+    name: "&bTools & Mining"
+    items: [WOODEN_PICKAXE, STONE_PICKAXE, IRON_PICKAXE, DIAMOND_PICKAXE, WOODEN_AXE, STONE_AXE, IRON_AXE, DIAMOND_AXE, WOODEN_SHOVEL, STONE_SHOVEL, IRON_SHOVEL, DIAMOND_SHOVEL, SHEARS, FISHING_ROD, SHIELD, COMPASS, CLOCK]
+  transport:
+    material: "MINECART"
+    name: "&eTransport & Travel"
+    items: [MINECART, CHEST_MINECART, RAIL, POWERED_RAIL, DETECTOR_RAIL, ACTIVATOR_RAIL, OAK_BOAT, SPRUCE_BOAT, BIRCH_BOAT, LEAD, NAME_TAG, SADDLE, FIREWORK_ROCKET]
+  brewing:
+    material: "BREWING_STAND"
+    name: "&dBrewing & Enchanting"
+    items: [BREWING_STAND, GLASS_BOTTLE, CAULDRON, EXPERIENCE_BOTTLE, BOOK, BOOKSHELF, LAPIS_BLOCK, ENCHANTED_BOOK]
   farming-special:
     material: "GOLDEN_CARROT"
     name: "&6Farming & Misc"
@@ -249,6 +265,71 @@ prices:
 # Item rare/endgame/OP tidak masuk BUY maupun SELL.
 # Harga disusun untuk ekonomi sulit: item mudah/farmable tetap bernilai rendah,
 # item berisiko/lebih sulit didapat mahal, dan harga SELL sangat rendah dibanding BUY.
+
+  WHITE_WOOL: {buy: 3600, sell: 180}
+  BLACK_WOOL: {buy: 3900, sell: 190}
+  RED_WOOL: {buy: 3900, sell: 190}
+  BLUE_WOOL: {buy: 3900, sell: 190}
+  GREEN_WOOL: {buy: 3900, sell: 190}
+  YELLOW_WOOL: {buy: 3900, sell: 190}
+  ORANGE_WOOL: {buy: 3900, sell: 190}
+  PURPLE_WOOL: {buy: 3900, sell: 190}
+  CYAN_WOOL: {buy: 3900, sell: 190}
+  PINK_WOOL: {buy: 3900, sell: 190}
+  WHITE_CONCRETE: {buy: 4800, sell: 240}
+  BLACK_CONCRETE: {buy: 4800, sell: 240}
+  RED_CONCRETE: {buy: 4800, sell: 240}
+  BLUE_CONCRETE: {buy: 4800, sell: 240}
+  WHITE_TERRACOTTA: {buy: 4200, sell: 210}
+  ORANGE_TERRACOTTA: {buy: 4200, sell: 210}
+  WHITE_STAINED_GLASS: {buy: 5200, sell: 260}
+  BLACK_STAINED_GLASS: {buy: 5200, sell: 260}
+  WHITE_CARPET: {buy: 1800, sell: 90}
+  SCAFFOLDING: {buy: 3600, sell: 180}
+  LADDER: {buy: 2400, sell: 120}
+  OAK_FENCE: {buy: 3200, sell: 160}
+  OAK_FENCE_GATE: {buy: 3600, sell: 180}
+  OAK_DOOR: {buy: 2800, sell: 140}
+  OAK_TRAPDOOR: {buy: 4200, sell: 210}
+  WHITE_BED: {buy: 6000, sell: 300}
+  WOODEN_PICKAXE: {buy: 1800, sell: 90}
+  STONE_PICKAXE: {buy: 3600, sell: 180}
+  IRON_PICKAXE: {buy: 18000, sell: 900}
+  DIAMOND_PICKAXE: {buy: 120000, sell: 6000}
+  WOODEN_AXE: {buy: 1800, sell: 90}
+  STONE_AXE: {buy: 3600, sell: 180}
+  IRON_AXE: {buy: 18000, sell: 900}
+  DIAMOND_AXE: {buy: 120000, sell: 6000}
+  WOODEN_SHOVEL: {buy: 900, sell: 40}
+  STONE_SHOVEL: {buy: 1800, sell: 90}
+  IRON_SHOVEL: {buy: 9000, sell: 450}
+  DIAMOND_SHOVEL: {buy: 60000, sell: 3000}
+  SHEARS: {buy: 6000, sell: 300}
+  FISHING_ROD: {buy: 7200, sell: 360}
+  SHIELD: {buy: 12000, sell: 600}
+  COMPASS: {buy: 6000, sell: 300}
+  CLOCK: {buy: 7200, sell: 360}
+  MINECART: {buy: 18000, sell: 900}
+  CHEST_MINECART: {buy: 30000, sell: 1500}
+  RAIL: {buy: 6000, sell: 300}
+  POWERED_RAIL: {buy: 18000, sell: 900}
+  DETECTOR_RAIL: {buy: 9000, sell: 450}
+  ACTIVATOR_RAIL: {buy: 12000, sell: 600}
+  OAK_BOAT: {buy: 3600, sell: 180}
+  SPRUCE_BOAT: {buy: 3600, sell: 180}
+  BIRCH_BOAT: {buy: 3600, sell: 180}
+  LEAD: {buy: 9000, sell: 450}
+  NAME_TAG: {buy: 24000, sell: 1200}
+  SADDLE: {buy: 30000, sell: 1500}
+  FIREWORK_ROCKET: {buy: 7200, sell: 360}
+  BREWING_STAND: {buy: 18000, sell: 900}
+  GLASS_BOTTLE: {buy: 1200, sell: 60}
+  CAULDRON: {buy: 12000, sell: 600}
+  EXPERIENCE_BOTTLE: {buy: 18000, sell: 900}
+  BOOK: {buy: 6000, sell: 300}
+  BOOKSHELF: {buy: 18000, sell: 900}
+  LAPIS_BLOCK: {buy: 90000, sell: 4500}
+  ENCHANTED_BOOK: {buy: -1, sell: -1}
 
 display-names: {}
 item-permissions: {}
