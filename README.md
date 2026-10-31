@@ -70,10 +70,10 @@ This is a **scarcity-based starting balance**, not a guarantee of exploit-proof 
 - Common terrain blocks and easily renewable materials have extremely low sell value (around 0.5–1% of buy price).
 - Ordinary items/loot target around 2%; selected rare drops and endgame materials target around 6%.
 - The intent is that a player with a mining power cannot become rich just by stripping huge areas of stone or cobblestone.
-- **Price tuning alone cannot stop automated farms or high-power abilities.** Before a public launch, add server-side per-player sell quotas/cooldowns for common materials, and consider excluding basic terrain blocks from /sellall. Apply limits consistently to /sellall, /sellall <material>, /sellall hand, and GUI bulk selling.
+- **Anti-exploit code is now included:** common terrain blocks are excluded from bulk sell paths, and configured materials have per-player sell quotas over a configurable time window. Quota accounting currently lives in memory, so a server restart resets those windows; persistent quota storage is a remaining hardening task before treating this as exploit-proof. The limits cover direct sell, sell hand, sell-all-by-material, inventory bulk selling, and SellGUI bulk selling.
 - Confirm the actual unit multiplier for `shop-stack-size: 16` and non-stackable items in-game; the displayed price must match the number of items actually transacted.
 
-Suggested staging test: give a test player a fast-mining power, mine and sell 10, 100, and 1,000 stacks of stone/cobblestone, then compare earnings with a player doing ordinary survival. Repeat with renewable farms and rare drops. If bulk mining is still the best money source, lower common-block sell prices further or disable their bulk selling. Do not call the economy production-ready until these tests pass.
+Suggested staging test: give a test player a fast-mining power, mine and sell 10, 100, and 1,000 stacks of stone/cobblestone, then compare earnings with a player doing ordinary survival. Repeat with renewable farms and rare drops. If bulk mining is still the best money source, lower common-block sell prices further or disable their direct selling too. Do not call the economy production-ready until these tests pass.
 
 ## Shared MySQL/MariaDB economy (optional)
 
