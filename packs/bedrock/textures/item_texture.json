@@ -1,0 +1,9 @@
+{
+  "resource_pack_name": "ImperialShop Beach Paper",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "paper": {
+      "textures": "textures/items/paper"
+    }
+  }
+}
