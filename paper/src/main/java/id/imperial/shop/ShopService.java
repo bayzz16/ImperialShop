@@ -348,8 +348,11 @@ public final class ShopService {
     }
 
     void openSearchInput(Player player) {
-        Inventory inventory = createGui(GuiType.SEARCH, 3,
+        ShopHolder holder = new ShopHolder(GuiType.SEARCH);
+        Inventory inventory = Bukkit.createInventory(holder,
+                org.bukkit.event.inventory.InventoryType.ANVIL,
                 color("&b&lᴄᴀʀɪ ɪᴛᴇᴍ"));
+        holder.bind(inventory);
         org.bukkit.inventory.AnvilInventory anvil = (org.bukkit.inventory.AnvilInventory) inventory;
         anvil.setRepairCost(0);
 
