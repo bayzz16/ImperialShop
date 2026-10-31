@@ -96,7 +96,6 @@ categories:
 # dan sengaja tidak dibatasi max-sell per transaksi.
 prices:
 # HARD ECONOMY: harga BUY dinaikkan 50%; harga SELL hanya sekitar 5% dari harga BUY.\n# Harga buy/sell di bawah adalah harga untuk 1 stack tampilan shop (default 16x).
-# Ini mengikuti model stack-size EconomyShopGUI: harga konfigurasi berlaku untuk seluruh stack tampilan.
   STONE: {buy: 950, sell: 100}
   COBBLESTONE: {buy: 650, sell: 70}
   DEEPSLATE: {buy: 1600, sell: 160}
