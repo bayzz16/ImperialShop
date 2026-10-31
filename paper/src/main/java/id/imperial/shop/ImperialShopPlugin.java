@@ -138,6 +138,7 @@ public final class ImperialShopPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         getServer().getMessenger().unregisterIncomingPluginChannel(this, VelocityBridgeListener.CHANNEL);
+        if (shop != null) shop.shutdown();
         if (imperialEconomy != null) {
             getServer().getServicesManager().unregister(Economy.class, imperialEconomy);
             imperialEconomy.shutdown();
