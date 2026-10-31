@@ -30,6 +30,42 @@ settings:
   # Transaksi dengan jumlah di bawah angka ini langsung diproses; jumlah lebih besar meminta konfirmasi.
   confirmation-threshold: 16
 
+# HARD ECONOMY: reward is paid only when the player was hit by that exact mob
+# during the fight. Instant/safe kills pay nothing. Values are deliberately small.
+mob-rewards:
+  ZOMBIE: 5
+  HUSK: 6
+  DROWNED: 6
+  ZOMBIFIED_PIGLIN: 5
+  SKELETON: 5
+  STRAY: 7
+  BOGGED: 7
+  SPIDER: 4
+  CAVE_SPIDER: 7
+  CREEPER: 8
+  ENDERMAN: 12
+  WITCH: 12
+  SLIME: 3
+  MAGMA_CUBE: 7
+  PHANTOM: 8
+  PILLAGER: 8
+  VINDICATOR: 12
+  EVOKER: 20
+  RAVAGER: 25
+  GUARDIAN: 10
+  ELDER_GUARDIAN: 35
+  BLAZE: 10
+  GHAST: 15
+  HOGLIN: 10
+  ZOGLIN: 12
+  PIGLIN_BRUTE: 15
+  WITHER_SKELETON: 12
+  SHULKER: 15
+  SILVERFISH: 3
+  ENDERMITE: 4
+  BREEZE: 15
+  WARDEN: 50
+
 gui:
   main-title: "&8✦ &b&lɪᴍᴘᴇʀɪᴀʟ &f&lꜱʜᴏᴘ &8✦"
   category-title: "&8✦ &bɪᴍᴘᴇʀɪᴀʟ &8» &f%category%"
@@ -54,6 +90,7 @@ messages:
   above-max-sell: "&c✦ &fMaksimum penjualan &8• &e%amount%x &7per transaksi"
   nothing-to-sell: "&c✦ &fTidak ada item yang dapat dijual."
   reloaded: "&a✦ &fɪᴍᴘᴇʀɪᴀʟꜱʜᴏᴘ &7berhasil di-reload."
+  mob-reward: "&a+%amount% &7karena menang melawan &f%mob%&7."
 
 sounds:
   buy: "ENTITY_EXPERIENCE_ORB_PICKUP"
