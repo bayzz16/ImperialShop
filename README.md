@@ -61,3 +61,30 @@ ImperialShop is its own implementation. It uses the documented EconomyShopGUI fe
 
 ## Configuration
 The main configuration is YAML and is loaded through the Paper plugin configuration API. Edit plugins/ImperialShop/config.yml, then use /imperialshop reload.
+
+## Shared MySQL/MariaDB economy (optional)
+
+The default economy remains local `economy.yml`. To share balances between multiple Paper/Purpur backends, configure **each backend** to use the same MySQL/MariaDB database and table.
+
+1. Create a dedicated database and a database user with only the permissions needed for the configured table (SELECT, INSERT, UPDATE, and CREATE if the plugin should create its table automatically). Restrict the user to the backend hosts where practical.
+2. Configure `plugins/ImperialShop/config.yml` on every backend:
+
+```yaml
+economy:
+  storage:
+    mysql:
+      enabled: true
+      host: "DB_HOST"
+      port: 3306
+      database: "imperialshop"
+      username: "imperialshop"
+      password: ""
+      table: "imperialshop_balances"
+      pool-size: 5
+```
+
+3. Set `IMPERIALSHOP_DB_PASSWORD` in the environment of every backend process. Do not commit database credentials to Git. The JDBC connection requires TLS/SSL; configure the database endpoint and certificates accordingly.
+4. Back up all existing `economy.yml` files and plan a reviewed migration before enabling shared storage. **Balances are not automatically imported**; the first connection creates the SQL table, not player balances.
+5. Test on a staging server first: startup with the database available/unavailable, balance reads, deposits, withdrawals, insufficient funds, simultaneous transactions on two backends, restart persistence, and rollback/error behavior.
+
+All backends must point at the same database/table to share balances. Keep the feature disabled until migration and staging checks are complete. Vault's economy API is synchronous, so database calls can block a server thread during slow database operations; use a reliable low-latency database and load-test before production. The SQL table uses `DECIMAL(20,2)`, whose maximum non-negative balance is `999999999999999999.99`.
