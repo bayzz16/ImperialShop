@@ -1,12 +1,13 @@
 economy:
-  # imperial = ImperialShop owns the Vault economy provider.
+  # imperial = ImperialShop owns the Vault economy provider (works without EssentialsX).
   # external = use another plugin registered through Vault.
-  provider: "external"
+  # If external is selected but no provider is found, ImperialShop falls back to imperial.
+  provider: "imperial"
   currency-name-singular: "Rupiah"
   currency-name-plural: "Rupiah"
   storage:
     # YAML is the default single-server storage.
-    # A shared SQL backend will be added through the economy storage API for multi-server networks.
+    # A shared SQL backend is needed to synchronize balances across multiple backend servers.
     autosave-ticks: 600
 
 network:
