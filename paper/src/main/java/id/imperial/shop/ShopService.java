@@ -15,6 +15,11 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.text.NumberFormat;
 import java.util.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 public final class ShopService {
     final ImperialShopPlugin plugin;
@@ -28,6 +33,10 @@ public final class ShopService {
     private final Map<UUID, Inventory> sellInputs = new HashMap<>();
     private final Map<UUID, Long> transactionCooldowns = new HashMap<>();
     private final Map<UUID, Map<Material, SellWindow>> sellWindows = new HashMap<>();
+    private final Object sellWindowSaveLock = new Object();
+    private long sellWindowSaveVersion;
+    private long persistedSellWindowSaveVersion;
+    private final Path sellWindowFile;
 
     enum GuiType {
         MAIN, CATEGORY, QUANTITY, CONFIRM, SEARCH, SELL_LIST, SELL_INPUT
@@ -67,7 +76,9 @@ public final class ShopService {
         this.economy = economy;
         this.actionKey = new NamespacedKey(plugin, "action");
         this.itemKey = new NamespacedKey(plugin, "item");
+        this.sellWindowFile = plugin.getDataFolder().toPath().resolve("sell-limits.yml");
         reload();
+        loadSellWindows();
     }
 
     void reload() {
@@ -943,6 +954,90 @@ public final class ShopService {
         } else {
             playerWindows.put(material, new SellWindow(current.startedAt(), current.amount() + amount));
         }
+        scheduleSellWindowSave();
+    }
+
+    /** Loads quota windows so restarting a backend cannot immediately reset sell limits. */
+    private void loadSellWindows() {
+        sellWindows.clear();
+        if (!Files.isRegularFile(sellWindowFile)) return;
+        YamlConfiguration stored = YamlConfiguration.loadConfiguration(sellWindowFile.toFile());
+        long now = System.currentTimeMillis();
+        long windowMillis = sellWindowMillis();
+        var players = stored.getConfigurationSection("players");
+        if (players == null) return;
+
+        for (String rawUuid : players.getKeys(false)) {
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(rawUuid);
+            } catch (IllegalArgumentException ignored) {
+                plugin.getLogger().warning("Ignoring invalid UUID in sell-limits.yml: " + rawUuid);
+                continue;
+            }
+            var materialSection = players.getConfigurationSection(rawUuid);
+            if (materialSection == null) continue;
+            Map<Material, SellWindow> windows = new EnumMap<>(Material.class);
+            for (String rawMaterial : materialSection.getKeys(false)) {
+                Material material = Material.matchMaterial(rawMaterial);
+                if (material == null || sellQuota(material) <= 0) continue;
+                long startedAt = materialSection.getLong(rawMaterial + ".started-at", 0L);
+                int amount = materialSection.getInt(rawMaterial + ".amount", 0);
+                if (startedAt <= 0 || amount <= 0 || now - startedAt >= windowMillis || startedAt > now) continue;
+                windows.put(material, new SellWindow(startedAt, Math.min(amount, sellQuota(material))));
+            }
+            if (!windows.isEmpty()) sellWindows.put(uuid, windows);
+        }
+        plugin.getLogger().info("Loaded persistent sell-limit windows for " + sellWindows.size() + " players.");
+    }
+
+    private String sellWindowSnapshot() {
+        YamlConfiguration snapshot = new YamlConfiguration();
+        long now = System.currentTimeMillis();
+        for (Map.Entry<UUID, Map<Material, SellWindow>> playerEntry : sellWindows.entrySet()) {
+            String playerPath = "players." + playerEntry.getKey();
+            for (Map.Entry<Material, SellWindow> materialEntry : playerEntry.getValue().entrySet()) {
+                SellWindow window = materialEntry.getValue();
+                if (sellQuota(materialEntry.getKey()) <= 0 || now - window.startedAt() >= sellWindowMillis()) continue;
+                String materialPath = playerPath + "." + materialEntry.getKey().name();
+                snapshot.set(materialPath + ".started-at", window.startedAt());
+                snapshot.set(materialPath + ".amount", window.amount());
+            }
+        }
+        return snapshot.saveToString();
+    }
+
+    private void scheduleSellWindowSave() {
+        final String snapshot = sellWindowSnapshot();
+        final long version = ++sellWindowSaveVersion;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writeSellWindowSnapshot(snapshot, version));
+    }
+
+    private void writeSellWindowSnapshot(String snapshot, long version) {
+        synchronized (sellWindowSaveLock) {
+            if (version < persistedSellWindowSaveVersion) return;
+            try {
+                Files.createDirectories(sellWindowFile.getParent());
+                Path temporary = sellWindowFile.resolveSibling(sellWindowFile.getFileName() + ".tmp");
+                Files.writeString(temporary, snapshot);
+                try {
+                    Files.move(temporary, sellWindowFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                } catch (IOException atomicMoveUnsupported) {
+                    Files.move(temporary, sellWindowFile, StandardCopyOption.REPLACE_EXISTING);
+                }
+                persistedSellWindowSaveVersion = version;
+            } catch (IOException exception) {
+                plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                        "Could not persist sell-limit windows; limits remain active until restart.", exception);
+            }
+        }
+    }
+
+    /** Flushes the latest quota state synchronously during plugin shutdown. */
+    void shutdown() {
+        String snapshot = sellWindowSnapshot();
+        long version = ++sellWindowSaveVersion;
+        writeSellWindowSnapshot(snapshot, version);
     }
 
     private boolean bulkMaterialAllowed(Player player, Material material, int amount) {
