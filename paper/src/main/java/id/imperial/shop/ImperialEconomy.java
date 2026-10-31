@@ -30,6 +30,7 @@ final class ImperialEconomy implements Economy {
     private final Map<UUID, Double> balances = new ConcurrentHashMap<>();
     private final File file;
     private final AtomicBoolean dirty = new AtomicBoolean(false);
+    private static final java.math.BigDecimal MAX_TRANSACTION_AMOUNT = new java.math.BigDecimal("999999999999999999.99");
     private SharedEconomyStorage sharedStorage;
     private volatile boolean enabled;
 
@@ -95,7 +96,13 @@ final class ImperialEconomy implements Economy {
 
     private double normalize(double amount) {
         if (!Double.isFinite(amount)) return 0;
-        return Math.round(amount * 100.0) / 100.0;
+        return java.math.BigDecimal.valueOf(amount)
+                .setScale(2, java.math.RoundingMode.HALF_UP).doubleValue();
+    }
+
+    private boolean validAmount(double amount) {
+        return Double.isFinite(amount) && amount >= 0
+                && java.math.BigDecimal.valueOf(amount).compareTo(MAX_TRANSACTION_AMOUNT) <= 0;
     }
 
     private UUID uuid(OfflinePlayer player) {
@@ -281,8 +288,7 @@ final class ImperialEconomy implements Economy {
     public synchronized EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
         UUID uuid = uuid(player);
         if (uuid == null) return failure(amount, null, "Invalid player.");
-        if (!Double.isFinite(amount)) return failure(amount, uuid, "Amount must be finite.");
-        if (amount < 0) return failure(amount, uuid, "Amount must not be negative.");
+        if (!validAmount(amount)) return failure(amount, uuid, "Amount is invalid or exceeds the supported balance limit.");
         amount = normalize(amount);
         if (sharedStorage != null) {
             try {
@@ -323,8 +329,7 @@ final class ImperialEconomy implements Economy {
     public synchronized EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
         UUID uuid = uuid(player);
         if (uuid == null) return failure(amount, null, "Invalid player.");
-        if (!Double.isFinite(amount)) return failure(amount, uuid, "Amount must be finite.");
-        if (amount < 0) return failure(amount, uuid, "Amount must not be negative.");
+        if (!validAmount(amount)) return failure(amount, uuid, "Amount is invalid or exceeds the supported balance limit.");
         amount = normalize(amount);
         if (sharedStorage != null) {
             try { return success(amount, uuid, sharedStorage.deposit(uuid, amount)); }
