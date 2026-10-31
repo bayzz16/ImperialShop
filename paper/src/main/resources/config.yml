@@ -6,9 +6,19 @@ economy:
   currency-name-singular: "Rupiah"
   currency-name-plural: "Rupiah"
   storage:
-    # YAML is the default single-server storage.
-    # A shared SQL backend is needed to synchronize balances across multiple backend servers.
+    # Enable on every Paper/Purpur backend to share one network-wide balance table.
+    # Prefer environment variable IMPERIALSHOP_DB_PASSWORD over storing a password here.
+    # Shared mode fails closed if database setup/connection fails; it never uses local YAML.
     autosave-ticks: 600
+    mysql:
+      enabled: false
+      host: "127.0.0.1"
+      port: 3306
+      database: "imperialshop"
+      username: "imperialshop"
+      password: ""
+      table: "imperialshop_balances"
+      pool-size: 5
 
 network:
   # Must match the Velocity bridge. Prefer the IMPERIALSHOP_NETWORK_SECRET environment variable in production.
@@ -30,41 +40,107 @@ settings:
   # Transaksi dengan jumlah di bawah angka ini langsung diproses; jumlah lebih besar meminta konfirmasi.
   confirmation-threshold: 16
 
+
+# Scarcity economy anti-exploit controls.
+# Per-material quotas are per player and reset after sell-window-seconds; 0 = no quota.
+# Common terrain blocks are excluded from bulk sell commands/GUI, but can still be sold in limited quantities.
+anti-exploit:
+  sell-window-seconds: 600
+  bulk-sell-disabled:
+    - STONE
+    - COBBLESTONE
+    - DEEPSLATE
+    - COBBLED_DEEPSLATE
+    - ANDESITE
+    - DIORITE
+    - GRANITE
+    - TUFF
+    - SAND
+    - RED_SAND
+    - GRAVEL
+    - DIRT
+    - GRASS_BLOCK
+    - NETHERRACK
+    - BASALT
+    - BLACKSTONE
+    - END_STONE
+    - COBBLESTONE_SLAB
+    - COBBLESTONE_STAIRS
+    - OAK_SLAB
+    - OAK_STAIRS
+    - OAK_PLANKS
+    - BIRCH_PLANKS
+    - SPRUCE_PLANKS
+    - JUNGLE_PLANKS
+    - ACACIA_PLANKS
+    - DARK_OAK_PLANKS
+    - MANGROVE_PLANKS
+  sell-quota:
+    STONE: 256
+    COBBLESTONE: 256
+    DEEPSLATE: 192
+    COBBLED_DEEPSLATE: 192
+    ANDESITE: 128
+    DIORITE: 128
+    GRANITE: 128
+    TUFF: 128
+    SAND: 128
+    RED_SAND: 96
+    GRAVEL: 128
+    DIRT: 128
+    GRASS_BLOCK: 64
+    NETHERRACK: 256
+    BASALT: 128
+    BLACKSTONE: 96
+    END_STONE: 96
+    WHEAT: 256
+    CARROT: 256
+    POTATO: 256
+    BEETROOT: 256
+    SUGAR_CANE: 256
+    CACTUS: 256
+    BAMBOO: 256
+    KELP: 256
+    ROTTEN_FLESH: 128
+    BONE: 128
+    STRING: 128
+    FEATHER: 128
+
 # HARD ECONOMY: reward is paid only when the player was hit by that exact mob
 # during the fight. Instant/safe kills pay nothing. Values are deliberately small.
 mob-rewards:
-  ZOMBIE: 5
-  HUSK: 6
-  DROWNED: 6
-  ZOMBIFIED_PIGLIN: 5
-  SKELETON: 5
-  STRAY: 7
-  BOGGED: 7
-  SPIDER: 4
-  CAVE_SPIDER: 7
-  CREEPER: 8
-  ENDERMAN: 12
-  WITCH: 12
-  SLIME: 3
-  MAGMA_CUBE: 7
-  PHANTOM: 8
-  PILLAGER: 8
-  VINDICATOR: 12
-  EVOKER: 20
-  RAVAGER: 25
-  GUARDIAN: 10
-  ELDER_GUARDIAN: 35
-  BLAZE: 10
-  GHAST: 15
-  HOGLIN: 10
-  ZOGLIN: 12
-  PIGLIN_BRUTE: 15
-  WITHER_SKELETON: 12
-  SHULKER: 15
-  SILVERFISH: 3
-  ENDERMITE: 4
-  BREEZE: 15
-  WARDEN: 50
+  ZOMBIE: 10
+  HUSK: 12
+  DROWNED: 12
+  ZOMBIFIED_PIGLIN: 10
+  SKELETON: 10
+  STRAY: 14
+  BOGGED: 14
+  SPIDER: 8
+  CAVE_SPIDER: 14
+  CREEPER: 16
+  ENDERMAN: 24
+  WITCH: 24
+  SLIME: 6
+  MAGMA_CUBE: 14
+  PHANTOM: 16
+  PILLAGER: 16
+  VINDICATOR: 24
+  EVOKER: 40
+  RAVAGER: 50
+  GUARDIAN: 20
+  ELDER_GUARDIAN: 70
+  BLAZE: 20
+  GHAST: 30
+  HOGLIN: 20
+  ZOGLIN: 24
+  PIGLIN_BRUTE: 30
+  WITHER_SKELETON: 24
+  SHULKER: 30
+  SILVERFISH: 6
+  ENDERMITE: 8
+  BREEZE: 30
+  WARDEN: 100
 
 gui:
   main-title: "&8✦ &b&lɪᴍᴘᴇʀɪᴀʟ &f&lꜱʜᴏᴘ &8✦"
