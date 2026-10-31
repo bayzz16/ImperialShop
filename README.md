@@ -62,16 +62,18 @@ ImperialShop is its own implementation. It uses the documented EconomyShopGUI fe
 ## Configuration
 The main configuration is YAML and is loaded through the Paper plugin configuration API. Edit plugins/ImperialShop/config.yml, then use /imperialshop reload.
 
-## Economy balance (Balanced-Hard v2)
+## Economy balance (Scarcity Economy v3)
 
-The current draft uses a **balanced-hard** starting point, not a final claim of perfect balance. Shop prices are configured for the shop's displayed quantity (shop-stack-size: 16), while non-stackable equipment is bought as individual items according to its material stack size.
+This is a **scarcity-based starting balance**, not a guarantee of exploit-proof economics.
 
-- Shop buy prices were reduced by about 20% from the previous draft.
-- Sell prices target roughly 10% of the matching buy price to reduce buy/sell arbitrage while making selling loot worthwhile.
-- Mob rewards were doubled; rewards still depend on the existing combat eligibility checks.
-- Rare/endgame equipment remains expensive. The values should be tuned after a short live test using actual player earnings and spending.
+- Buy prices remain progression-based; sell prices are no longer a flat ~10% of buy price.
+- Common terrain blocks and easily renewable materials have extremely low sell value (around 0.5–1% of buy price).
+- Ordinary items/loot target around 2%; selected rare drops and endgame materials target around 6%.
+- The intent is that a player with a mining power cannot become rich just by stripping huge areas of stone or cobblestone.
+- **Price tuning alone cannot stop automated farms or high-power abilities.** Before a public launch, add server-side per-player sell quotas/cooldowns for common materials, and consider excluding basic terrain blocks from /sellall. Apply limits consistently to /sellall, /sellall <material>, /sellall hand, and GUI bulk selling.
+- Confirm the actual unit multiplier for `shop-stack-size: 16` and non-stackable items in-game; the displayed price must match the number of items actually transacted.
 
-Suggested test: record how long a new player needs to afford starter tools, one food stack, iron equipment, and a diamond tool; also test farms and mob grinders for excessive money generation. If players earn too slowly, adjust rewards or common-item sell prices in small steps rather than lowering every price at once.
+Suggested staging test: give a test player a fast-mining power, mine and sell 10, 100, and 1,000 stacks of stone/cobblestone, then compare earnings with a player doing ordinary survival. Repeat with renewable farms and rare drops. If bulk mining is still the best money source, lower common-block sell prices further or disable their bulk selling. Do not call the economy production-ready until these tests pass.
 
 ## Shared MySQL/MariaDB economy (optional)
 
