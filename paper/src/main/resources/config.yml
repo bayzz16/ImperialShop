@@ -40,6 +40,72 @@ settings:
   # Transaksi dengan jumlah di bawah angka ini langsung diproses; jumlah lebih besar meminta konfirmasi.
   confirmation-threshold: 16
 
+
+# Scarcity economy anti-exploit controls.
+# Per-material quotas are per player and reset after sell-window-seconds; 0 = no quota.
+# Common terrain blocks are excluded from bulk sell commands/GUI, but can still be sold in limited quantities.
+anti-exploit:
+  sell-window-seconds: 600
+  bulk-sell-disabled:
+    - STONE
+    - COBBLESTONE
+    - DEEPSLATE
+    - COBBLED_DEEPSLATE
+    - ANDESITE
+    - DIORITE
+    - GRANITE
+    - TUFF
+    - SAND
+    - RED_SAND
+    - GRAVEL
+    - DIRT
+    - GRASS_BLOCK
+    - NETHERRACK
+    - BASALT
+    - BLACKSTONE
+    - END_STONE
+    - COBBLESTONE_SLAB
+    - COBBLESTONE_STAIRS
+    - OAK_SLAB
+    - OAK_STAIRS
+    - OAK_PLANKS
+    - BIRCH_PLANKS
+    - SPRUCE_PLANKS
+    - JUNGLE_PLANKS
+    - ACACIA_PLANKS
+    - DARK_OAK_PLANKS
+    - MANGROVE_PLANKS
+  sell-quota:
+    STONE: 256
+    COBBLESTONE: 256
+    DEEPSLATE: 192
+    COBBLED_DEEPSLATE: 192
+    ANDESITE: 128
+    DIORITE: 128
+    GRANITE: 128
+    TUFF: 128
+    SAND: 128
+    RED_SAND: 96
+    GRAVEL: 128
+    DIRT: 128
+    GRASS_BLOCK: 64
+    NETHERRACK: 256
+    BASALT: 128
+    BLACKSTONE: 96
+    END_STONE: 96
+    WHEAT: 256
+    CARROT: 256
+    POTATO: 256
+    BEETROOT: 256
+    SUGAR_CANE: 256
+    CACTUS: 256
+    BAMBOO: 256
+    KELP: 256
+    ROTTEN_FLESH: 128
+    BONE: 128
+    STRING: 128
+    FEATHER: 128
+
 # HARD ECONOMY: reward is paid only when the player was hit by that exact mob
 # during the fight. Instant/safe kills pay nothing. Values are deliberately small.
 mob-rewards:
