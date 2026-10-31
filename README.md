@@ -62,6 +62,17 @@ ImperialShop is its own implementation. It uses the documented EconomyShopGUI fe
 ## Configuration
 The main configuration is YAML and is loaded through the Paper plugin configuration API. Edit plugins/ImperialShop/config.yml, then use /imperialshop reload.
 
+## Economy balance (Balanced-Hard v2)
+
+The current draft uses a **balanced-hard** starting point, not a final claim of perfect balance. Shop prices are configured for the shop's displayed quantity (shop-stack-size: 16), while non-stackable equipment is bought as individual items according to its material stack size.
+
+- Shop buy prices were reduced by about 20% from the previous draft.
+- Sell prices target roughly 10% of the matching buy price to reduce buy/sell arbitrage while making selling loot worthwhile.
+- Mob rewards were doubled; rewards still depend on the existing combat eligibility checks.
+- Rare/endgame equipment remains expensive. The values should be tuned after a short live test using actual player earnings and spending.
+
+Suggested test: record how long a new player needs to afford starter tools, one food stack, iron equipment, and a diamond tool; also test farms and mob grinders for excessive money generation. If players earn too slowly, adjust rewards or common-item sell prices in small steps rather than lowering every price at once.
+
 ## Shared MySQL/MariaDB economy (optional)
 
 The default economy remains local `economy.yml`. To share balances between multiple Paper/Purpur backends, configure **each backend** to use the same MySQL/MariaDB database and table.
