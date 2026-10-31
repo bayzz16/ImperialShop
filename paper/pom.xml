@@ -19,7 +19,8 @@
     <plugins>
       <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.0</version><configuration><release>21</release></configuration></plugin>
       <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-shade-plugin</artifactId><version>3.6.0</version><executions><execution><phase>package</phase><goals><goal>shade</goal></goals><configuration><createDependencyReducedPom>false</createDependencyReducedPom>
-            <relocations><relocation><pattern>com.zaxxer.hikari</pattern><shadedPattern>id.imperial.shop.libs.hikari</shadedPattern></relocation></relocations><shadedArtifactAttached>false</shadedArtifactAttached></configuration></execution></executions></plugin>
+            <relocations><relocation><pattern>com.zaxxer.hikari</pattern><shadedPattern>id.imperial.shop.libs.hikari</shadedPattern></relocation></relocations>
+            <transformers><transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/></transformers><shadedArtifactAttached>false</shadedArtifactAttached></configuration></execution></executions></plugin>
     </plugins>
   </build>
 </project>
