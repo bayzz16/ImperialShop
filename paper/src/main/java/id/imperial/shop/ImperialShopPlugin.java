@@ -30,25 +30,26 @@ public final class ImperialShopPlugin extends JavaPlugin {
 
         String providerMode = getConfig().getString("economy.provider", "imperial");
         if (providerMode.equalsIgnoreCase("imperial")) {
-            imperialEconomy = new ImperialEconomy(this);
-            imperialEconomy.load();
-            getServer().getServicesManager().register(
-                    Economy.class, imperialEconomy, this, ServicePriority.Highest);
-            imperialEconomy.startAutosave();
-            economy = imperialEconomy;
-            getLogger().info("Imperial Economy registered as the Vault economy provider.");
+            registerImperialEconomy();
         } else {
             RegisteredServiceProvider<Economy> registration =
                     getServer().getServicesManager().getRegistration(Economy.class);
 
-            if (registration == null || registration.getProvider() == null) {
-                getLogger().severe("Vault economy provider not found. Set economy.provider: imperial or install an external Vault economy provider.");
-                getServer().getPluginManager().disablePlugin(this);
-                return;
+            if (registration == null || registration.getProvider() == null
+                    || registration.getProvider() instanceof ImperialEconomy) {
+                getLogger().warning("External Vault economy was requested but no external provider is available.");
+                getLogger().warning("Falling back to ImperialShop's built-in economy so shop transactions remain usable.");
+                registerImperialEconomy();
+            } else {
+                economy = registration.getProvider();
+                getLogger().info("Using external Vault economy provider: " + economy.getName());
             }
+        }
 
-            economy = registration.getProvider();
-            getLogger().info("Using external Vault economy provider: " + economy.getName());
+        if (economy == null || !economy.isEnabled()) {
+            getLogger().severe("No active economy provider could be initialized. ImperialShop will be disabled.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
         }
 
         history = new TransactionHistory(this);
@@ -66,6 +67,17 @@ public final class ImperialShopPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new ShopListener(shop), this);
         getLogger().info("ImperialShop 2.1.0 enabled for Paper/Purpur 1.21.x.");
+    }
+
+    private void registerImperialEconomy() {
+        if (imperialEconomy != null) return;
+        imperialEconomy = new ImperialEconomy(this);
+        imperialEconomy.load();
+        getServer().getServicesManager().register(
+                Economy.class, imperialEconomy, this, ServicePriority.Highest);
+        imperialEconomy.startAutosave();
+        economy = imperialEconomy;
+        getLogger().info("Imperial Economy registered as the Vault economy provider.");
     }
 
     String networkSecret() {
