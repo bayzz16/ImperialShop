@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "ImperialShop Beach Paper",
+    "description": "Warm parchment and tropical sea paper texture",
+    "uuid": "f39e4d0c-79b0-4dd4-9d2b-6b65a11f7f20",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      20,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "5f7e7e30-5d10-4e55-bbc5-2f0cbe7c3db5",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}
