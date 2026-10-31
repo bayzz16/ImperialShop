@@ -1492,7 +1492,7 @@ public final class ShopService {
         quantities.remove(uuid);
         pendingTransactions.remove(uuid);
         transactionCooldowns.remove(uuid);
-        sellWindows.remove(uuid);
+        // Keep sell quota windows after logout; otherwise reconnecting bypasses limits.
         returnSellInput(player);
     }
 
