@@ -27,6 +27,7 @@ public final class ShopService {
     private final Map<UUID, PendingTransaction> pendingTransactions = new HashMap<>();
     private final Map<UUID, Inventory> sellInputs = new HashMap<>();
     private final Map<UUID, Long> transactionCooldowns = new HashMap<>();
+    private final Map<UUID, Map<Material, SellWindow>> sellWindows = new HashMap<>();
 
     enum GuiType {
         MAIN, CATEGORY, QUANTITY, CONFIRM, SEARCH, SELL_LIST, SELL_INPUT
@@ -896,6 +897,59 @@ public final class ShopService {
         pendingTransactions.remove(player.getUniqueId());
     }
 
+    private boolean bulkSellDisabled(Material material) {
+        return plugin.getConfig().getStringList("anti-exploit.bulk-sell-disabled").stream()
+                .map(String::trim)
+                .anyMatch(name -> name.equalsIgnoreCase(material.name()));
+    }
+
+    private int sellQuota(Material material) {
+        return Math.max(0, plugin.getConfig().getInt(
+                "anti-exploit.sell-quota." + material.name(), 0));
+    }
+
+    private long sellWindowMillis() {
+        return Math.max(60_000L, plugin.getConfig().getLong(
+                "anti-exploit.sell-window-seconds", 600L) * 1000L);
+    }
+
+    private int remainingSellQuota(Player player, Material material) {
+        int quota = sellQuota(material);
+        if (quota <= 0) return Integer.MAX_VALUE;
+        Map<Material, SellWindow> playerWindows = sellWindows.get(player.getUniqueId());
+        SellWindow window = playerWindows == null ? null : playerWindows.get(material);
+        long now = System.currentTimeMillis();
+        if (window == null || now - window.startedAt() >= sellWindowMillis()) return quota;
+        return Math.max(0, quota - window.amount());
+    }
+
+    private boolean canSellAmount(Player player, Material material, int amount) {
+        int remaining = remainingSellQuota(player, material);
+        if (amount <= remaining) return true;
+        player.sendMessage("§e✦ §fBatas jual sementara §8• §7" + pretty(material)
+                + " §7tersisa §e" + remaining + " §7item dalam periode ini.");
+        sound(player, "fail");
+        return false;
+    }
+
+    private void recordSold(Player player, Material material, int amount) {
+        if (sellQuota(material) <= 0 || amount <= 0) return;
+        long now = System.currentTimeMillis();
+        Map<Material, SellWindow> playerWindows =
+                sellWindows.computeIfAbsent(player.getUniqueId(), ignored -> new EnumMap<>(Material.class));
+        SellWindow current = playerWindows.get(material);
+        if (current == null || now - current.startedAt() >= sellWindowMillis()) {
+            playerWindows.put(material, new SellWindow(now, amount));
+        } else {
+            playerWindows.put(material, new SellWindow(current.startedAt(), current.amount() + amount));
+        }
+    }
+
+    private boolean bulkMaterialAllowed(Player player, Material material, int amount) {
+        if (bulkSellDisabled(material)) return false;
+        return canSellAmount(player, material, amount);
+    }
+
     private long transactionCooldownMillis() {
         return Math.max(0L, plugin.getConfig().getLong("settings.transaction-cooldown-ms", 250L));
     }
@@ -1003,6 +1057,10 @@ public final class ShopService {
         Price price = prices.get(material);
 
         if (category == null || price == null || price.sell() < 0 || requested < 1) return 0;
+        if (bulkSellDisabled(material) && ignoreMaxSell) {
+            player.sendMessage("§c✦ §fItem ini tidak bisa dijual melalui penjualan massal.");
+            return 0;
+        }
         boolean allowed = guiPermission
                 ? canSellGuiItem(player, category, material)
                 : canTrade(player, category, material);
@@ -1035,6 +1093,7 @@ public final class ShopService {
             return 0;
         }
         if (amount < 1) return 0;
+        if (!canSellAmount(player, material, amount)) return 0;
         if (!tryTransaction(player)) return 0;
 
         double total = sellPrice(player, material) * amount;
@@ -1053,6 +1112,7 @@ public final class ShopService {
                 "%price%", "Rp " + money(total)));
         transactionFeedback(player, true, "SELL", material, amount, total);
         plugin.history().record(player, "SELL", material, amount, total);
+        recordSold(player, material, amount);
         sound(player, "sell");
         return total;
     }
@@ -1079,6 +1139,7 @@ public final class ShopService {
 
         ItemStack backup = stack.clone();
         int amount = backup.getAmount();
+        if (!canSellAmount(player, material, amount)) return 0;
         double total = sellPrice(player, material) * amount;
         if (amount < 1 || !Double.isFinite(total) || total < 0) return 0;
         if (!tryTransaction(player)) return 0;
@@ -1096,6 +1157,7 @@ public final class ShopService {
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
         plugin.history().record(player, "SELL", material, amount, total);
+        recordSold(player, material, amount);
         sound(player, "sell");
         return total;
     }
@@ -1108,6 +1170,10 @@ public final class ShopService {
 
         int amount = count(player, material);
         if (amount < 1) return 0;
+        if (!bulkMaterialAllowed(player, material, amount)) {
+            player.sendMessage("§c✦ §fPenjualan massal item ini dibatasi oleh anti-exploit.");
+            return 0;
+        }
         if (!tryTransaction(player)) return 0;
 
         double total = sellPrice(player, material) * amount;
@@ -1125,6 +1191,7 @@ public final class ShopService {
                 "%item%", pretty(material),
                 "%price%", "Rp " + money(total)));
         plugin.history().record(player, "SELL", material, amount, total);
+        recordSold(player, material, amount);
         sound(player, "sell");
         return total;
     }
@@ -1135,12 +1202,26 @@ public final class ShopService {
 
         double total = 0;
         List<SlotBackup> sold = new ArrayList<>();
+        Map<Material, Integer> requestedByMaterial = new EnumMap<>(Material.class);
+        for (int slot = 0; slot < 45; slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack != null && !stack.getType().isAir()) {
+                requestedByMaterial.merge(stack.getType(), stack.getAmount(), Integer::sum);
+            }
+        }
+        Set<Material> blockedMaterials = new HashSet<>();
+        for (var entry : requestedByMaterial.entrySet()) {
+            if (!bulkMaterialAllowed(player, entry.getKey(), entry.getValue())) {
+                blockedMaterials.add(entry.getKey());
+            }
+        }
 
         for (int slot = 0; slot < 45; slot++) {
             ItemStack stack = input.getItem(slot);
             if (stack == null || stack.getType().isAir()) continue;
 
             Material material = stack.getType();
+            if (blockedMaterials.contains(material)) continue;
             Category category = categoryFor(material);
             Price price = prices.get(material);
             if (category == null || price == null || price.sell() < 0
@@ -1174,6 +1255,8 @@ public final class ShopService {
             ItemStack stack = backup.stack();
             plugin.history().record(player, "SELL", stack.getType(), stack.getAmount(),
                     sellPrice(player, stack.getType()) * stack.getAmount());
+            recordSold(player, stack.getType(), stack.getAmount());
+            recordSold(player, stack.getType(), stack.getAmount());
         }
         sound(player, "sell");
         return total;
@@ -1200,12 +1283,25 @@ public final class ShopService {
     double sellContents(Player player) {
         double total = 0;
         List<SlotBackup> backups = new ArrayList<>();
+        Map<Material, Integer> requestedByMaterial = new EnumMap<>(Material.class);
+        for (ItemStack stack : player.getInventory().getStorageContents()) {
+            if (stack != null && !stack.getType().isAir()) {
+                requestedByMaterial.merge(stack.getType(), stack.getAmount(), Integer::sum);
+            }
+        }
+        Set<Material> blockedMaterials = new HashSet<>();
+        for (var entry : requestedByMaterial.entrySet()) {
+            if (!bulkMaterialAllowed(player, entry.getKey(), entry.getValue())) {
+                blockedMaterials.add(entry.getKey());
+            }
+        }
 
         for (int slot = 0; slot < player.getInventory().getStorageContents().length; slot++) {
             ItemStack stack = player.getInventory().getItem(slot);
             if (stack == null || stack.getType().isAir()) continue;
 
             Material material = stack.getType();
+            if (blockedMaterials.contains(material)) continue;
             Category category = categoryFor(material);
             Price price = prices.get(material);
             if (category == null || price == null || price.sell() < 0
@@ -1298,6 +1394,7 @@ public final class ShopService {
         quantities.remove(uuid);
         pendingTransactions.remove(uuid);
         transactionCooldowns.remove(uuid);
+        sellWindows.remove(uuid);
         returnSellInput(player);
     }
 
@@ -1351,4 +1448,5 @@ public final class ShopService {
 
     record PendingTransaction(String action, String categoryId, Material material, int amount) {}
     record SlotBackup(int slot, ItemStack stack) {}
+    record SellWindow(long startedAt, int amount) {}
 }
