@@ -281,8 +281,9 @@ final class ImperialEconomy implements Economy {
     public synchronized EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
         UUID uuid = uuid(player);
         if (uuid == null) return failure(amount, null, "Invalid player.");
-        amount = normalize(amount);
+        if (!Double.isFinite(amount)) return failure(amount, uuid, "Amount must be finite.");
         if (amount < 0) return failure(amount, uuid, "Amount must not be negative.");
+        amount = normalize(amount);
         if (sharedStorage != null) {
             try {
                 double next = sharedStorage.withdraw(uuid, amount);
@@ -322,8 +323,9 @@ final class ImperialEconomy implements Economy {
     public synchronized EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
         UUID uuid = uuid(player);
         if (uuid == null) return failure(amount, null, "Invalid player.");
-        amount = normalize(amount);
+        if (!Double.isFinite(amount)) return failure(amount, uuid, "Amount must be finite.");
         if (amount < 0) return failure(amount, uuid, "Amount must not be negative.");
+        amount = normalize(amount);
         if (sharedStorage != null) {
             try { return success(amount, uuid, sharedStorage.deposit(uuid, amount)); }
             catch (Exception exception) {
