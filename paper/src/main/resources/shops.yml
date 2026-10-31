@@ -95,7 +95,9 @@ categories:
 # /sellall, /sellall hand, dan tombol "Jual Semua" memang merupakan bulk-sell
 # dan sengaja tidak dibatasi max-sell per transaksi.
 prices:
-# HARD ECONOMY: harga BUY dinaikkan 50%; harga SELL hanya sekitar 5% dari harga BUY.\n# Harga buy/sell di bawah adalah harga untuk 1 stack tampilan shop (default 16x).
+# BALANCED-HARD ECONOMY v2: harga beli diturunkan sekitar 20% dari draft sebelumnya; harga jual sekitar 10% dari harga beli.
+# Harga diatur untuk jumlah tampilan shop (shop-stack-size: 16). Item non-stackable dibeli sebagai satu item.
+# Tujuan: progres survival tetap menantang, tetapi barang dasar dan makanan masih bisa dijangkau.
   STONE: {buy: 950, sell: 100}
   COBBLESTONE: {buy: 650, sell: 70}
   DEEPSLATE: {buy: 1600, sell: 160}
