@@ -66,22 +66,62 @@ final class SharedEconomyStorage {
     }
 
     double deposit(UUID uuid,double amount) throws SQLException {
-        try (Connection c=dataSource.getConnection(); PreparedStatement p=c.prepareStatement("INSERT INTO "+table+" (uuid,balance) VALUES (?,?) ON DUPLICATE KEY UPDATE balance=balance+VALUES(balance)")) {
-            p.setString(1,uuid.toString());
-            p.setBigDecimal(2,java.math.BigDecimal.valueOf(amount).setScale(2,java.math.RoundingMode.HALF_UP));
-            p.executeUpdate();
+        java.math.BigDecimal value=java.math.BigDecimal.valueOf(amount).setScale(2,java.math.RoundingMode.HALF_UP);
+        try (Connection c=dataSource.getConnection()) {
+            c.setAutoCommit(false);
+            try {
+                try (PreparedStatement p=c.prepareStatement("INSERT INTO "+table+" (uuid,balance) VALUES (?,0.00) ON DUPLICATE KEY UPDATE uuid=VALUES(uuid)")) {
+                    p.setString(1,uuid.toString()); p.executeUpdate();
+                }
+                java.math.BigDecimal current;
+                try (PreparedStatement p=c.prepareStatement("SELECT balance FROM "+table+" WHERE uuid=? FOR UPDATE")) {
+                    p.setString(1,uuid.toString());
+                    try (ResultSet rs=p.executeQuery()) {
+                        if (!rs.next()) throw new SQLException("Account disappeared during deposit.");
+                        current=rs.getBigDecimal(1);
+                    }
+                }
+                java.math.BigDecimal next=current.add(value).setScale(2,java.math.RoundingMode.HALF_UP);
+                try (PreparedStatement p=c.prepareStatement("UPDATE "+table+" SET balance=? WHERE uuid=?")) {
+                    p.setBigDecimal(1,next); p.setString(2,uuid.toString()); p.executeUpdate();
+                }
+                c.commit();
+                return next.doubleValue();
+            } catch (SQLException ex) {
+                try { c.rollback(); } catch (SQLException ignored) {}
+                throw ex;
+            } finally { try { c.setAutoCommit(true); } catch (SQLException ignored) {} }
         }
-        return balance(uuid);
     }
 
     double withdraw(UUID uuid,double amount) throws SQLException {
-        createAccount(uuid);
-        try (Connection c=dataSource.getConnection(); PreparedStatement p=c.prepareStatement("UPDATE "+table+" SET balance=balance-? WHERE uuid=? AND balance>=?")) {
-            java.math.BigDecimal v=java.math.BigDecimal.valueOf(amount).setScale(2,java.math.RoundingMode.HALF_UP);
-            p.setBigDecimal(1,v); p.setString(2,uuid.toString()); p.setBigDecimal(3,v);
-            if (p.executeUpdate()!=1) return Double.NaN;
+        java.math.BigDecimal value=java.math.BigDecimal.valueOf(amount).setScale(2,java.math.RoundingMode.HALF_UP);
+        try (Connection c=dataSource.getConnection()) {
+            c.setAutoCommit(false);
+            try {
+                try (PreparedStatement p=c.prepareStatement("INSERT INTO "+table+" (uuid,balance) VALUES (?,0.00) ON DUPLICATE KEY UPDATE uuid=VALUES(uuid)")) {
+                    p.setString(1,uuid.toString()); p.executeUpdate();
+                }
+                java.math.BigDecimal current;
+                try (PreparedStatement p=c.prepareStatement("SELECT balance FROM "+table+" WHERE uuid=? FOR UPDATE")) {
+                    p.setString(1,uuid.toString());
+                    try (ResultSet rs=p.executeQuery()) {
+                        if (!rs.next()) throw new SQLException("Account disappeared during withdrawal.");
+                        current=rs.getBigDecimal(1);
+                    }
+                }
+                if (current.compareTo(value)<0) { c.rollback(); return Double.NaN; }
+                java.math.BigDecimal next=current.subtract(value).setScale(2,java.math.RoundingMode.HALF_UP);
+                try (PreparedStatement p=c.prepareStatement("UPDATE "+table+" SET balance=? WHERE uuid=?")) {
+                    p.setBigDecimal(1,next); p.setString(2,uuid.toString()); p.executeUpdate();
+                }
+                c.commit();
+                return next.doubleValue();
+            } catch (SQLException ex) {
+                try { c.rollback(); } catch (SQLException ignored) {}
+                throw ex;
+            } finally { try { c.setAutoCommit(true); } catch (SQLException ignored) {} }
         }
-        return balance(uuid);
     }
 
     void close() { if (!dataSource.isClosed()) dataSource.close(); }
