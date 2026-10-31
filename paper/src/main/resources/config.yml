@@ -6,9 +6,19 @@ economy:
   currency-name-singular: "Rupiah"
   currency-name-plural: "Rupiah"
   storage:
-    # YAML is the default single-server storage.
-    # A shared SQL backend is needed to synchronize balances across multiple backend servers.
+    # Enable on every Paper/Purpur backend to share one network-wide balance table.
+    # Prefer environment variable IMPERIALSHOP_DB_PASSWORD over storing a password here.
+    # Shared mode fails closed if database setup/connection fails; it never uses local YAML.
     autosave-ticks: 600
+    mysql:
+      enabled: false
+      host: "127.0.0.1"
+      port: 3306
+      database: "imperialshop"
+      username: "imperialshop"
+      password: ""
+      table: "imperialshop_balances"
+      pool-size: 5
 
 network:
   # Must match the Velocity bridge. Prefer the IMPERIALSHOP_NETWORK_SECRET environment variable in production.
