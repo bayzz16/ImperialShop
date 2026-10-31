@@ -71,6 +71,10 @@ categories:
     material: "IRON_PICKAXE"
     name: "&bTools & Mining"
     items: [WOODEN_PICKAXE, STONE_PICKAXE, IRON_PICKAXE, DIAMOND_PICKAXE, WOODEN_AXE, STONE_AXE, IRON_AXE, DIAMOND_AXE, WOODEN_SHOVEL, STONE_SHOVEL, IRON_SHOVEL, DIAMOND_SHOVEL, SHEARS, FISHING_ROD, SHIELD, COMPASS, CLOCK]
+  combat:
+    material: "IRON_CHESTPLATE"
+    name: "&cCombat & Armor"
+    items: [WOODEN_SWORD, STONE_SWORD, IRON_SWORD, DIAMOND_SWORD, BOW, CROSSBOW, ARROW, SPECTRAL_ARROW, IRON_HELMET, IRON_CHESTPLATE, IRON_LEGGINGS, IRON_BOOTS, DIAMOND_HELMET, DIAMOND_CHESTPLATE, DIAMOND_LEGGINGS, DIAMOND_BOOTS, GOLDEN_APPLE]
   transport:
     material: "MINECART"
     name: "&eTransport & Travel"
@@ -78,7 +82,7 @@ categories:
   brewing:
     material: "BREWING_STAND"
     name: "&dBrewing & Enchanting"
-    items: [BREWING_STAND, GLASS_BOTTLE, CAULDRON, EXPERIENCE_BOTTLE, BOOK, BOOKSHELF, LAPIS_BLOCK, ENCHANTED_BOOK]
+    items: [BREWING_STAND, GLASS_BOTTLE, CAULDRON, EXPERIENCE_BOTTLE, BOOK, BOOKSHELF, LAPIS_BLOCK]
   farming-special:
     material: "GOLDEN_CARROT"
     name: "&6Farming & Misc"
@@ -266,6 +270,23 @@ prices:
 # Harga disusun untuk ekonomi sulit: item mudah/farmable tetap bernilai rendah,
 # item berisiko/lebih sulit didapat mahal, dan harga SELL sangat rendah dibanding BUY.
 
+  WOODEN_SWORD: {buy: 2400, sell: 120}
+  STONE_SWORD: {buy: 4800, sell: 240}
+  IRON_SWORD: {buy: 24000, sell: 1200}
+  DIAMOND_SWORD: {buy: 150000, sell: 7500}
+  BOW: {buy: 12000, sell: 600}
+  CROSSBOW: {buy: 18000, sell: 900}
+  ARROW: {buy: 1800, sell: 90}
+  SPECTRAL_ARROW: {buy: 6000, sell: 300}
+  IRON_HELMET: {buy: 24000, sell: 1200}
+  IRON_CHESTPLATE: {buy: 38400, sell: 1920}
+  IRON_LEGGINGS: {buy: 33600, sell: 1680}
+  IRON_BOOTS: {buy: 19200, sell: 960}
+  DIAMOND_HELMET: {buy: 150000, sell: 7500}
+  DIAMOND_CHESTPLATE: {buy: 240000, sell: 12000}
+  DIAMOND_LEGGINGS: {buy: 210000, sell: 10500}
+  DIAMOND_BOOTS: {buy: 120000, sell: 6000}
+  GOLDEN_APPLE: {buy: 48000, sell: 2400}
   WHITE_WOOL: {buy: 3600, sell: 180}
   BLACK_WOOL: {buy: 3900, sell: 190}
   RED_WOOL: {buy: 3900, sell: 190}
@@ -329,7 +350,6 @@ prices:
   BOOK: {buy: 6000, sell: 300}
   BOOKSHELF: {buy: 18000, sell: 900}
   LAPIS_BLOCK: {buy: 90000, sell: 4500}
-  ENCHANTED_BOOK: {buy: -1, sell: -1}
 
 display-names: {}
 item-permissions: {}
